@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>While You Were Busy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { font-family: Arial, sans-serif; background: #1a1a1a; overflow: hidden; }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, #2a2a3e 0%, #1a1a2e 100%);
+        }
+
+        #hud {
+            background: #222;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #444;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #scene {
+            flex: 1;
+            position: relative;
+            background: url('UI_Assets/plainbackground.png') center/cover no-repeat;
+            overflow: hidden;
+        }
+
+        #scene img { position: absolute; user-select: none; z-index: 2; object-fit: contain; }
+        #desk { bottom: 0; left: 0; width: 100%; height: auto; object-fit: fill; opacity: 1; z-index: 0; }
+        #window { top: 3%; right: 5%; width: 28%; height: 35%; opacity: 0.85; z-index: 3; }
+        #bulletinBoard { left: 2%; top: 3%; width: 30%; height: 40%; opacity: 0.9; z-index: 3; }
+        #shredder { bottom: 8%; right: 3%; width: 12%; height: auto; cursor: pointer; z-index: 6; }
+        #printer { bottom: 8%; left: 2%; width: 10%; height: auto; opacity: 0.85; z-index: 7; }
+        #printBtn {
+            position: absolute;
+            bottom: 4%;
+            left: 2%;
+            width: 10%;
+            text-align: center;
+            z-index: 8;
+            background: #e8d5b0;
+            border: 2px solid #8b6f47;
+            border-radius: 4px;
+            padding: 4px 0;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #5a3e1b;
+            user-select: none;
+        }
+        #printBtn:hover { background: #d4be96; }
+
+        @keyframes windowShake {
+            0%   { transform: translate(0,0) rotate(0deg); }
+            10%  { transform: translate(-6px,-4px) rotate(-1deg); }
+            20%  { transform: translate(6px,4px) rotate(1deg); }
+            30%  { transform: translate(-8px,2px) rotate(-1.5deg); }
+            40%  { transform: translate(8px,-2px) rotate(1.5deg); }
+            50%  { transform: translate(-6px,4px) rotate(-1deg); }
+            60%  { transform: translate(6px,-4px) rotate(1deg); }
+            70%  { transform: translate(-4px,2px) rotate(-0.5deg); }
+            80%  { transform: translate(4px,-2px) rotate(0.5deg); }
+            90%  { transform: translate(-2px,1px) rotate(0deg); }
+            100% { transform: translate(0,0) rotate(0deg); }
+        }
+        #window.shaking { animation: windowShake 0.6s ease-in-out; }
+        #flower { bottom: 4%; left: 22%; width: 12%; height: auto; opacity: 1; z-index: 6; }
+        #laptop { bottom: 2%; left: 50%; transform: translateX(-50%); width: 28%; height: auto; z-index: 5; }
+
+        .ticket {
+            position: absolute;
+            width: 120px;
+            height: 160px;
+            background: #f5e6d3;
+            border: 2px solid #8b6f47;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: grab;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 100;
+            font-size: 11px;
+            user-select: none;
+            overflow: hidden;
+            transition: transform 0.1s;
+            left: 0;
+            top: 0;
+        }
+
+        .ticket.stamped::after {
+            content: 'STAMPED';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 24px;
+            font-weight: bold;
+            color: rgba(220, 20, 60, 0.7);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .ticket:hover { transform: scale(1.05); }
+        .ticket.dragging { opacity: 0.7; z-index: 1000; }
+
+        #ticketBoard {
+            position: absolute;
+            top: 3%;
+            left: 2%;
+            width: 30%;
+            height: 44%;
+            background: transparent;
+            border: none;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        #ticketBoard .ticket {
+            pointer-events: auto;
+        }
+
+        #minigameOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #minigameOverlay.active { display: flex; }
+
+        #minigameWindow {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 560px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        #minigameWindow h2 { margin-bottom: 20px; color: #333; }
+        #minigameWindow input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            user-select: text;
+        }
+
+        #minigameWindow button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+
+        #minigameWindow button:hover { background: #45a049; }
+
+        #endingPanel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 10001;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        #endingPanel.active { display: flex; }
+        #endingPanel h1 { font-size: 48px; margin-bottom: 30px; }
+        #endingPanel p { font-size: 24px; margin: 20px 0; }
+        #endingPanel button {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 30px;
+        }
+
+        #upgradePanel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 10002;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        #upgradePanel.active { display: flex; }
+        #upgradePanel h1 { font-size: 42px; margin-bottom: 30px; }
+        #upgradeOptions { display: flex; gap: 20px; justify-content: center; margin: 30px 0; flex-wrap: wrap; }
+        .upgradeCard {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 20px;
+            width: 200px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upgradeCard:hover {
+            background: rgba(76,175,80,0.2);
+            transform: scale(1.05);
+        }
+        .upgradeCard h3 { margin: 0 0 10px 0; }
+        .upgradeCard p { margin: 10px 0 0 0; font-size: 14px; opacity: 0.8; }
+
+        #startScreen {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            z-index: 10003;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        #startScreen.hidden { display: none; }
+        #startScreen h1 { font-size: 64px; margin-bottom: 20px; font-weight: bold; }
+        #startScreen p { font-size: 24px; margin: 15px 0; opacity: 0.9; }
+        #startButton {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 24px;
+            margin-top: 40px;
+            transition: all 0.3s;
+        }
+        #startButton:hover { background: #45a049; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>WHILE YOU WERE BUSY</h1>
+        <p>You have 5 days to complete your work tasks.</p>
+        <p>Each day: 1 minute 30 seconds, 4 tasks to complete.</p>
+        <p>Click tickets to play minigames. Stamp them and drag to shredder.</p>
+        <button id="startButton">START GAME</button>
+    </div>
+
+    <div id="gameContainer">
+        <div id="hud">
+            <span id="quotaDisplay">Tasks: 0/4</span>
+            <span id="dayDisplay">Day 1</span>
+            <span id="timerDisplay">Time: 8:00 AM</span>
+        </div>
+
+        <div id="scene">
+            <img id="desk" src="UI_Assets/desk.png" alt="Desk" style="display: block;">
+            <img id="bulletinBoard" src="UI_Assets/Bulletin Board.png" alt="Bulletin Board" style="display: block;">
+            <img id="window" src="UI_Assets/Window.png" alt="Window" style="display: block;">
+            <img id="flower" src="UI_Assets/Flower.png" alt="Flower" style="display: block;">
+            <img id="printer" src="UI_Assets/Printer.png" alt="Printer" style="display: block;">
+            <div id="printBtn" onclick="if(game.gameActive) printTicket()">PRINT</div>
+            <img id="shredder" src="UI_Assets/Shredder.png" alt="Shredder" style="display: block;">
+            <img id="laptop" src="UI_Assets/Laptop.png" alt="Laptop" style="display: block;">
+            <div id="ticketBoard"></div>
+        </div>
+    </div>
+
+    <div id="minigameOverlay">
+        <div id="minigameWindow">
+            <h2 id="minigameTitle">Typing Task</h2>
+            <p id="minigamePrompt">Type the following:</p>
+            <p id="minigameText" style="background: #f0f0f0; padding: 15px; margin: 15px 0; border-radius: 4px; font-family: monospace;"></p>
+            <input type="text" id="minigameInput" placeholder="Type here...">
+            <button onclick="completeMinigame()">Submit</button>
+        </div>
+    </div>
+
+    <div id="upgradePanel">
+        <h1>UPGRADES AVAILABLE</h1>
+        <p>Select an upgrade for the next day:</p>
+        <div id="upgradeOptions"></div>
+        <p style="margin-top: 30px; font-size: 14px; opacity: 0.7;">Or press SKIP to continue without upgrades</p>
+        <button id="skipButton" onclick="skipUpgrades()" style="background: #666; color: #fff; border: none; padding: 12px 30px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 20px;">SKIP</button>
+    </div>
+
+    <div id="endingPanel">
+        <h1>GAME OVER</h1>
+        <p id="endingText"></p>
+        <button onclick="location.reload()">Play Again</button>
+    </div>
+
+    <script>
+        const game = {
+            currentDay: 1,
+            tasksCompleted: 0,
+            tasksRequired: 4, // overridden per day
+            timeRemaining: 90,
+            gameActive: false,
+            tickets: [],
+            ticketIdCounter: 0,
+            draggingTicket: null,
+            dragOffset: { x: 0, y: 0 },
+            timerInterval: null,
+            spawnInterval: null,
+            bonusTime: 0,
+            spawnMs: 15000,
+            autoStampFirst: false,
+            typingSpeedMult: 1,
+            typingChars: 0
+        };
+
+        // 2 upgrades per day, matching UpgradeManager.cs
+        const upgradeDatabase = {
+            1: [
+                { id: 'fasterTyping',    title: 'Faster Typing',   description: 'Fewer key presses required to complete emails' },
+                { id: 'boostedQuota',    title: 'Boosted Quota',    description: 'Start Day 2 with 1 task already credited' }
+            ],
+            2: [
+                { id: 'numberLock',      title: 'Number Lock',      description: 'Riddle hints shown on tickets' },
+                { id: 'batchProcess',    title: 'Batch Process',    description: '2x typing speed — half the keypresses needed' }
+            ],
+            3: [
+                { id: 'preSorted',       title: 'Pre-Sorted',       description: 'First ticket each day is auto-stamped' },
+                { id: 'quickScan',       title: 'Quick Scan',       description: 'Math answers shown after 3 seconds' }
+            ],
+            4: [
+                { id: 'overclock',       title: 'Overclock',        description: 'Printer fires tickets every 10s instead of 15s' },
+                { id: 'memoryAssist',    title: 'Memory Assist',    description: '+20 seconds added to Day 5 timer' }
+            ]
+        };
+
+        const purchasedUpgrades = new Set();
+
+        // ── AUDIO ─────────────────────────────────────────────────────────────────
+        const Audio = {
+            ctx: null,
+            bgGain: null,
+            bgSource: null,
+            distortion: null,
+            filter: null,
+            pitchShift: null,
+            distortionInterval: null,
+
+            init() {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+
+            // Generate a distortion curve
+            makeDistortionCurve(amount) {
+                const n = 256, curve = new Float32Array(n);
+                for (let i = 0; i < n; i++) {
+                    const x = (i * 2) / n - 1;
+                    curve[i] = ((Math.PI + amount) * x) / (Math.PI + amount * Math.abs(x));
+                }
+                return curve;
+            },
+
+            startMusic(day) {
+                if (!this.ctx) this.init();
+                this.stopMusic();
+
+                const ctx = this.ctx;
+
+                // Signal chain:
+                // oscillators -> bgGain -> distortion -> ringMod -> tremolo -> highpass -> lowpass -> delay -> masterGain -> out
+                this.bgGain = ctx.createGain();
+                this.bgGain.gain.value = 0.22;
+
+                this.distortion = ctx.createWaveShaper();
+                this.distortion.oversample = '4x';
+                this.distortion.curve = this.makeDistortionCurve(0);
+
+                // Ring modulator (carrier oscillator multiplied in)
+                this.ringModGain = ctx.createGain();
+                this.ringModGain.gain.value = 0; // starts at 0, ramps up
+                this.ringCarrier = ctx.createOscillator();
+                this.ringCarrier.frequency.value = 30;
+                this.ringCarrier.start();
+                this.ringCarrier.connect(this.ringModGain);
+
+                // Tremolo (amplitude wobble)
+                this.tremoloDepth = ctx.createGain();
+                this.tremoloDepth.gain.value = 1;
+                this.tremoloLFO = ctx.createOscillator();
+                this.tremoloLFO.frequency.value = 5;
+                this.tremoloLFO.start();
+                const tremoloGainNode = ctx.createGain();
+                tremoloGainNode.gain.value = 0; // depth starts 0
+                this.tremoloLFO.connect(tremoloGainNode);
+                tremoloGainNode.connect(this.tremoloDepth.gain);
+                this._tremoloGainNode = tremoloGainNode;
+
+                // Highpass (removes low rumble, then we open it to let rumble through on day 5)
+                this.highpass = ctx.createBiquadFilter();
+                this.highpass.type = 'highpass';
+                this.highpass.frequency.value = 80;
+
+                // Lowpass (muffles over time)
+                this.filter = ctx.createBiquadFilter();
+                this.filter.type = 'lowpass';
+                this.filter.frequency.value = 9000;
+                this.filter.Q.value = 1;
+
+                // Feedback delay for creepy echo
+                this.delay = ctx.createDelay(2.0);
+                this.delay.delayTime.value = 0;
+                this.delayFeedback = ctx.createGain();
+                this.delayFeedback.gain.value = 0;
+                this.delay.connect(this.delayFeedback);
+                this.delayFeedback.connect(this.delay);
+
+                const masterGain = ctx.createGain();
+                masterGain.gain.value = 0.55;
+
+                // Wire it up
+                this.bgGain.connect(this.distortion);
+                this.distortion.connect(this.ringModGain); // ring mod adds on top
+                this.distortion.connect(this.tremoloDepth);
+                this.ringModGain.connect(this.tremoloDepth);
+                this.tremoloDepth.connect(this.highpass);
+                this.highpass.connect(this.filter);
+                this.filter.connect(this.delay);
+                this.filter.connect(masterGain);
+                this.delay.connect(masterGain);
+                masterGain.connect(ctx.destination);
+
+                const chords = [
+                    [261.63, 329.63, 392.00], // C major
+                    [293.66, 369.99, 440.00], // D minor
+                    [246.94, 311.13, 392.00], // B minor
+                    [220.00, 277.18, 329.63], // A minor
+                ];
+
+                let chordIdx = 0;
+                const oscillators = [];
+                this.bgSource = { oscillators, stop: () => {
+                    oscillators.forEach(o => { try { o.stop(); } catch(e){} });
+                    try { this.ringCarrier.stop(); } catch(e){}
+                    try { this.tremoloLFO.stop(); } catch(e){}
+                }};
+
+                const playChord = () => {
+                    if (!this.bgSource) return;
+                    const freqs = chords[chordIdx % chords.length];
+                    chordIdx++;
+
+                    freqs.forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const oscGain = ctx.createGain();
+                        osc.type = i === 0 ? 'triangle' : 'sine';
+                        osc.frequency.value = freq;
+                        oscGain.gain.setValueAtTime(0, ctx.currentTime);
+                        oscGain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.1);
+                        oscGain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 1.5);
+                        oscGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 3.8);
+                        osc.connect(oscGain);
+                        oscGain.connect(this.bgGain);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 4);
+                        oscillators.push(osc);
+                    });
+
+                    this.playClick(0.5);
+                    setTimeout(() => this.playClick(0.3), 1000);
+                    setTimeout(() => this.playClick(0.3), 2000);
+                    setTimeout(() => this.playClick(0.5), 3000);
+                };
+
+                playChord();
+                this._chordTimer = setInterval(playChord, 4000);
+
+                if (day >= 4) {
+                    this.startDistortionRamp(day);
+                }
+            },
+
+            startDistortionRamp(day) {
+                const ctx = this.ctx;
+                const totalTime = 90000;
+                const startTime = Date.now();
+
+                // Day 4 targets
+                const d4 = { distortion: 250, filterFreq: 600, ringMod: 0.5, tremolo: 0.4, tremoloRate: 8, delay: 0.35, feedback: 0.45 };
+                // Day 5 targets (much more extreme)
+                const d5 = { distortion: 800, filterFreq: 200, ringMod: 1.2, tremolo: 0.9, tremoloRate: 18, delay: 0.7, feedback: 0.75 };
+                const targets = day === 5 ? d5 : d4;
+
+                clearInterval(this.distortionInterval);
+                this.distortionInterval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    const t = Math.min(elapsed / totalTime, 1);
+                    const eased = t * t * t; // cubic ease — stays calm longer then goes wild
+
+                    this.distortion.curve = this.makeDistortionCurve(eased * targets.distortion);
+
+                    this.filter.frequency.setTargetAtTime(
+                        9000 - eased * (9000 - targets.filterFreq),
+                        ctx.currentTime, 0.3
+                    );
+
+                    // Ring mod deepens
+                    this.ringModGain.gain.setTargetAtTime(eased * targets.ringMod, ctx.currentTime, 0.5);
+                    this.ringCarrier.frequency.setTargetAtTime(
+                        30 + eased * (day === 5 ? 80 : 40),
+                        ctx.currentTime, 0.5
+                    );
+
+                    // Tremolo rate and depth increase
+                    this._tremoloGainNode.gain.setTargetAtTime(eased * targets.tremolo, ctx.currentTime, 0.5);
+                    this.tremoloLFO.frequency.setTargetAtTime(
+                        5 + eased * (targets.tremoloRate - 5),
+                        ctx.currentTime, 0.5
+                    );
+
+                    // Delay feedback grows — creates reverb → echo → near-infinite loop
+                    this.delay.delayTime.setTargetAtTime(eased * targets.delay, ctx.currentTime, 0.5);
+                    this.delayFeedback.gain.setTargetAtTime(eased * targets.feedback, ctx.currentTime, 0.5);
+
+                    // Day 5: random pitch lurches
+                    if (day === 5 && t > 0.5 && Math.random() < 0.05) {
+                        this.ringCarrier.frequency.setValueAtTime(
+                            30 + Math.random() * 200,
+                            ctx.currentTime
+                        );
+                    }
+
+                    if (t >= 1) clearInterval(this.distortionInterval);
+                }, 150);
+            },
+
+            stopMusic() {
+                if (this._chordTimer) clearInterval(this._chordTimer);
+                clearInterval(this.distortionInterval);
+                if (this.bgSource) { this.bgSource.stop(); this.bgSource = null; }
+            },
+
+            playClick(vol = 0.5) {
+                if (!this.ctx) return;
+                const ctx = this.ctx;
+                const buf = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 8);
+                const src = ctx.createBufferSource();
+                const g = ctx.createGain();
+                g.gain.value = vol * 0.15;
+                src.buffer = buf;
+                src.connect(g);
+                g.connect(ctx.destination);
+                src.start();
+            },
+
+            playTicketSpawn() {
+                if (!this.ctx) return;
+                const ctx = this.ctx;
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(400, ctx.currentTime + 0.15);
+                g.gain.setValueAtTime(0.2, ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+                osc.connect(g); g.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.15);
+            },
+
+            playStamp() {
+                if (!this.ctx) return;
+                const ctx = this.ctx;
+                const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3) * 0.8;
+                const src = ctx.createBufferSource();
+                const g = ctx.createGain();
+                g.gain.value = 0.4;
+                src.buffer = buf;
+                src.connect(g); g.connect(ctx.destination);
+                src.start();
+            },
+
+            playShred() {
+                if (!this.ctx) return;
+                const ctx = this.ctx;
+                const duration = 0.4;
+                const buf = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 1.5);
+                const src = ctx.createBufferSource();
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 2000;
+                filter.Q.value = 0.5;
+                const g = ctx.createGain();
+                g.gain.value = 0.35;
+                src.buffer = buf;
+                src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+                src.start();
+            },
+
+            playSuccess() {
+                if (!this.ctx) return;
+                const ctx = this.ctx;
+                [523, 659, 784].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    g.gain.setValueAtTime(0, ctx.currentTime + i * 0.1);
+                    g.gain.linearRampToValueAtTime(0.2, ctx.currentTime + i * 0.1 + 0.05);
+                    g.gain.linearRampToValueAtTime(0, ctx.currentTime + i * 0.1 + 0.3);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.1);
+                    osc.stop(ctx.currentTime + i * 0.1 + 0.3);
+                });
+            },
+
+            playDayFail() {
+                if (!this.ctx) return;
+                const ctx = this.ctx;
+                [400, 300, 200].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = freq;
+                    g.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.15);
+                    g.gain.linearRampToValueAtTime(0, ctx.currentTime + i * 0.15 + 0.3);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.3);
+                });
+            }
+        };
+
+        // ── INIT ──────────────────────────────────────────────────────────────────
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('startButton').addEventListener('click', startGameFromScreen);
+            setupEventListeners();
+        });
+
+        function startGameFromScreen() {
+            Audio.init();
+            document.getElementById('startScreen').classList.add('hidden');
+            startDay();
+        }
+
+        function startDay() {
+            game.gameActive = true;
+            game.tasksRequired = 4 + (game.currentDay - 1);
+            game.tasksCompleted = purchasedUpgrades.has('boostedQuota') && game.currentDay === 2 ? 1 : 0;
+            game.timeRemaining = 90 + game.bonusTime;
+            game.typingChars = 0;
+            usedMultiChoice.clear();
+            usedMath.clear();
+            if (game.currentDay < 4) document.getElementById('window').src = 'UI_Assets/Window.png';
+            if (game.currentDay === 1) {
+                const flower = document.getElementById('flower');
+                flower.style.transition = 'none';
+                flower.style.transform = '';
+                flower.style.opacity = '1';
+            }
+            document.getElementById('ticketBoard').innerHTML = '';
+            game.tickets = [];
+            updateHUD();
+
+            clearInterval(game.timerInterval);
+            clearInterval(game.spawnInterval);
+
+            Audio.startMusic(game.currentDay);
+
+            game.timerInterval = setInterval(() => {
+                if (!game.gameActive) return;
+                game.timeRemaining--;
+                updateHUD();
+                if (game.timeRemaining <= 0) endDay(false);
+            }, 1000);
+
+            setTimeout(() => { if (game.gameActive) printTicket(); }, 500);
+
+            if (game.currentDay === 5) {
+                startDay5Chaos();
+            } else {
+                const spawnMs = game.currentDay === 1 ? game.spawnMs : Math.max(6000, game.spawnMs - (game.currentDay - 1) * 2500);
+                game.spawnInterval = setInterval(() => {
+                    if (game.gameActive) printTicket();
+                }, spawnMs);
+            }
+
+            if (game.currentDay === 2) {
+                const flowerDelay = 20000 + Math.random() * 40000; // 20-60s into the day
+                setTimeout(() => {
+                    if (!game.gameActive) return;
+                    const flower = document.getElementById('flower');
+                    flower.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 1, 1)';
+                    flower.style.transformOrigin = 'bottom center';
+                    flower.style.transform = 'translateY(300px) rotate(90deg)';
+                }, flowerDelay);
+            }
+
+            if (game.currentDay === 4) {
+                setTimeout(() => {
+                    const win = document.getElementById('window');
+                    win.classList.add('shaking');
+                    win.addEventListener('animationend', () => {
+                        win.classList.remove('shaking');
+                        win.src = "UI_Assets/Horrible Weather.png";
+                    }, { once: true });
+                }, 2000);
+            }
+
+            if (game.autoStampFirst) {
+                setTimeout(() => {
+                    const first = document.querySelector('.ticket');
+                    if (first) first.classList.add('stamped');
+                }, 600);
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('quotaDisplay').textContent = `Tasks: ${game.tasksCompleted}/${game.tasksRequired}`;
+            document.getElementById('dayDisplay').textContent = `Day ${game.currentDay}`;
+            const elapsed = (90 + game.bonusTime) - game.timeRemaining;
+            const totalDisplay = 12 * 3600;
+            const secs = Math.floor((elapsed / (90 + game.bonusTime)) * totalDisplay);
+            const h = 8 + Math.floor(secs / 3600);
+            const m = Math.floor((secs % 3600) / 60);
+            const period = h >= 12 ? 'PM' : 'AM';
+            const dh = h > 12 ? h - 12 : h;
+            document.getElementById('timerDisplay').textContent = `Time: ${dh}:${String(m).padStart(2,'0')} ${period}`;
+        }
+
+        // ── TICKETS ───────────────────────────────────────────────────────────────
+        const allTyping = [
+            { title: "Draft Server Report", text: "Hi Team,\n\nFollowing our infrastructure review this week, I wanted to summarize the key findings from our server optimization audit. Our load balancing is performing well under standard traffic, but we identified bottlenecks during peak hours. Database query response times have increased by 23% over the past month, likely due to unindexed columns in the reporting schema. I recommend scheduling a maintenance window to apply fixes.\n\nBest regards,\nYour AI Assistant", minigame: "typing" },
+            { title: "Meeting Minutes", text: "Hi All,\n\nThank you for attending today's status meeting. The Q3 project timeline has been revised to accommodate the compliance requirements flagged by legal last Tuesday. Action items: engineering delivers updated API specs by end of week, design finalizes mockups by Monday, and QA begins regression testing by Wednesday. Please confirm your deliverables by replying to this email.\n\nThanks,\nYour AI Assistant", minigame: "typing" },
+            { title: "Email Client", text: "Dear Team,\n\nThis confirms that the deployment scheduled for Friday has been approved and will proceed as planned. All stakeholders have been notified. Please ensure your modules are feature-frozen by Thursday at 5 PM and all critical test cases have passed in staging. Any blockers must be escalated to the project lead immediately. Post-deployment monitoring will be active for 48 hours.\n\nKind regards,\nYour AI Assistant", minigame: "typing" },
+            { title: "Schedule Review", text: "Hello,\n\nI am writing to confirm the schedule for quarterly performance reviews. All department heads must submit self-assessment forms to HR two weeks before their review date. Managers should prepare feedback covering the five core competency areas in the company handbook. Reviews begin the first Monday of next month. Calendar invites will be sent within 24 hours.\n\nRegards,\nYour AI Assistant", minigame: "typing" },
+            { title: "Update Database", text: "Hi Support Team,\n\nAs part of our data hygiene initiative, we need to refresh all customer contact information in the CRM. This includes verifying emails, phone numbers, and addresses for accounts flagged as inactive in the past six months. Prioritize enterprise tier accounts first. Log all changes in the audit trail and escalate unverifiable records to the account manager. Target completion is end of business Friday.\n\nThank you,\nYour AI Assistant", minigame: "typing" }
+        ];
+        const allMultiChoice = [
+            { title: "Logic Puzzle", text: "How many months have exactly 28 days?", options: {"A":"12","B":"1","C":"6","D":"0"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "What gets wetter the more it dries?", options: {"A":"A towel","B":"A sponge","C":"Water","D":"Soap"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "You pass the person in 2nd place in a race. What place are you in?", options: {"A":"2nd","B":"1st","C":"3rd","D":"It depends"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "Which is heavier: a pound of feathers or a pound of bricks?", options: {"A":"They weigh the same","B":"Feathers","C":"Bricks","D":"Depends on the bricks"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "How many sides does a circle have?", options: {"A":"2","B":"0","C":"1","D":"Infinite"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "If you have 3 apples and take away 2, how many do you have?", options: {"A":"2","B":"1","C":"3","D":"0"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "Before Mt. Everest was discovered, what was the tallest mountain?", options: {"A":"Everest","B":"K2","C":"Kilimanjaro","D":"No mountain"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "A plane crashes on the border of the U.S. and Canada. Where do they bury the survivors?", options: {"A":"Nowhere","B":"U.S.","C":"Canada","D":"Both"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "How many animals of each species did Moses take on the Ark?", options: {"A":"None","B":"2","C":"1","D":"7"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "If you drop a red shirt into the Red Sea, what happens?", options: {"A":"It gets wet","B":"It sinks","C":"It disappears","D":"It gets dyed"}, answer: "A", minigame: "multichoice" }
+        ];
+        const allMath = [
+            { title: "Calculate Sum",      text: "What is 15 + 27?",       answer: "42",  minigame: "math" },
+            { title: "Division",           text: "What is 100 / 5?",       answer: "20",  minigame: "math" },
+            { title: "Multiplication",     text: "What is 8 × 9?",         answer: "72",  minigame: "math" },
+            { title: "Subtraction",        text: "What is 50 - 23?",       answer: "27",  minigame: "math" },
+            { title: "Order of Ops",       text: "What is 3 + 4 × 5?",    answer: "23",  minigame: "math" },
+            { title: "Calculate Sum",      text: "What is 48 + 36?",       answer: "84",  minigame: "math" },
+            { title: "Subtraction",        text: "What is 200 - 87?",      answer: "113", minigame: "math" },
+            { title: "Multiplication",     text: "What is 12 × 7?",        answer: "84",  minigame: "math" },
+            { title: "Division",           text: "What is 144 / 12?",      answer: "12",  minigame: "math" },
+            { title: "Order of Ops",       text: "What is 10 - 2 × 3?",   answer: "4",   minigame: "math" },
+            { title: "Calculate Sum",      text: "What is 99 + 44?",       answer: "143", minigame: "math" },
+            { title: "Multiplication",     text: "What is 6 × 13?",        answer: "78",  minigame: "math" },
+            { title: "Subtraction",        text: "What is 300 - 158?",     answer: "142", minigame: "math" },
+            { title: "Division",           text: "What is 225 / 15?",      answer: "15",  minigame: "math" },
+            { title: "Order of Ops",       text: "What is (4 + 6) × 3?",  answer: "30",  minigame: "math" },
+            { title: "Calculate Sum",      text: "What is 256 + 128?",     answer: "384", minigame: "math" },
+            { title: "Multiplication",     text: "What is 11 × 11?",       answer: "121", minigame: "math" },
+            { title: "Subtraction",        text: "What is 1000 - 437?",    answer: "563", minigame: "math" },
+            { title: "Division",           text: "What is 81 / 9?",        answer: "9",   minigame: "math" },
+            { title: "Order of Ops",       text: "What is 5 × 5 - 5?",    answer: "20",  minigame: "math" }
+        ];
+        const allPhoto = [
+            { title: "Reveal Document", text: "Hover to reveal the classified file", minigame: "photo", imageIndex: 0 },
+            { title: "Scan Image",      text: "Hover to scan the attached image",    minigame: "photo", imageIndex: 1 },
+            { title: "View Report",     text: "Hover to view the visual report",     minigame: "photo", imageIndex: 2 },
+            { title: "Check File",      text: "Hover to inspect the document",       minigame: "photo", imageIndex: 3 },
+            { title: "Photo Review",    text: "Hover to reveal the photo",           minigame: "photo", imageIndex: 4 }
+        ];
+
+        const usedMultiChoice = new Set();
+        const usedMath = new Set();
+
+        function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function pickMath() {
+            const unused = allMath.filter((_, i) => !usedMath.has(i));
+            const pool = unused.length > 0 ? unused : allMath;
+            if (unused.length === 0) usedMath.clear();
+            const item = pickRandom(pool);
+            usedMath.add(allMath.indexOf(item));
+            return item;
+        }
+
+        function pickMultiChoice() {
+            const unused = allMultiChoice.filter((_, i) => !usedMultiChoice.has(i));
+            const pool = unused.length > 0 ? unused : allMultiChoice;
+            if (unused.length === 0) usedMultiChoice.clear();
+            const idx = allMultiChoice.indexOf(pickRandom(pool));
+            usedMultiChoice.add(idx);
+            return allMultiChoice[idx];
+        }
+
+        const taskDatabase = {
+            1: () => pickRandom(allTyping),
+            2: () => { const r = Math.random(); return r < 0.25 ? pickRandom(allTyping) : pickMultiChoice(); },
+            3: () => { const r = Math.random(); return r < 0.15 ? pickRandom(allTyping) : r < 0.3 ? pickMultiChoice() : pickRandom(allPhoto); },
+            4: () => { const r = Math.random(); return r < 0.1 ? pickRandom(allTyping) : r < 0.2 ? pickMultiChoice() : r < 0.3 ? pickRandom(allPhoto) : pickMath(); },
+            5: () => { const r = Math.random(); return r < 0.2 ? pickRandom(allTyping) : r < 0.4 ? pickMultiChoice() : r < 0.6 ? pickRandom(allPhoto) : pickMath(); }
+        };
+
+        const photoImages = [
+            'UI_Assets/rudi_nel-namibia-10183496_1920.jpg',
+            'UI_Assets/soultrain-sunset-8214498_1920.jpg',
+            'UI_Assets/martinophuc-italian-venezia-7700549_1920.jpg',
+            'UI_Assets/sam_gahan_ruhmkorff-cape-may-warbler-10164510_1920.jpg',
+            'UI_Assets/Specialimage.jpg'
+        ];
+
+        let currentTask = null;
+
+
+        function printTicket() {
+            const id = game.ticketIdCounter++;
+            const randomTask = taskDatabase[game.currentDay]();
+
+            const ticket = document.createElement('div');
+            ticket.className = 'ticket';
+            ticket.id = `ticket-${id}`;
+            const ticketColors = {
+                typing:      { bg: '#f5e6d3', border: '#8b6f47' },
+                multichoice: { bg: '#d3e8f5', border: '#4778a0' },
+                math:        { bg: '#d3f5d8', border: '#47a056' },
+                photo:       { bg: '#f5d3f0', border: '#a047a0' }
+            };
+            const color = ticketColors[randomTask.minigame] || ticketColors.typing;
+            ticket.style.background = color.bg;
+            ticket.style.borderColor = color.border;
+            const preview = randomTask.text.split('\n')[0].substring(0, 40) + '...';
+            ticket.innerHTML = `<strong>${randomTask.title}</strong><small>${preview}</small>`;
+            ticket.dataset.taskId = id;
+            ticket.dataset.minigame = randomTask.minigame;
+            ticket.dataset.stamped = 'false';
+
+            // Store task data
+            ticket.dataset.taskData = JSON.stringify(randomTask);
+
+            const board = document.getElementById('ticketBoard');
+
+            // Start at printer position (bottom left)
+            const printer = document.getElementById('printer');
+            const printerRect = printer.getBoundingClientRect();
+            const boardRect = board.getBoundingClientRect();
+
+            // Initial position at printer
+            ticket.style.left = (printerRect.left - boardRect.left + 20) + 'px';
+            ticket.style.top = (printerRect.top - boardRect.top + 20) + 'px';
+
+            board.appendChild(ticket);
+            game.tickets.push({ id, element: ticket, stamped: false });
+            Audio.playTicketSpawn();
+
+            // Animate to random spot on board
+            const randomX = Math.random() * (board.offsetWidth - 120);
+            const randomY = Math.random() * (board.offsetHeight - 160);
+            animateTicket(ticket, randomX, randomY);
+
+            // Add drag handlers
+            ticket.addEventListener('mousedown', startDrag);
+        }
+
+        function animateTicket(ticket, endX, endY) {
+            const startX = parseFloat(ticket.style.left);
+            const startY = parseFloat(ticket.style.top);
+            const duration = 0.8; // seconds
+            const startTime = Date.now();
+
+            function frame() {
+                const elapsed = (Date.now() - startTime) / 1000;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function for smooth animation
+                const easeProgress = progress < 0.5
+                    ? 2 * progress * progress
+                    : -1 + (4 - 2 * progress) * progress;
+
+                ticket.style.left = (startX + (endX - startX) * easeProgress) + 'px';
+                ticket.style.top = (startY + (endY - startY) * easeProgress) + 'px';
+
+                if (progress < 1) {
+                    requestAnimationFrame(frame);
+                }
+            }
+            requestAnimationFrame(frame);
+        }
+
+        function startDrag(e) {
+            const ticket = e.target.closest('.ticket');
+            if (!ticket || !ticket.classList.contains('stamped')) return;
+            e.preventDefault();
+            game.draggingTicket = ticket;
+            ticket.classList.add('dragging');
+            const ticketRect = ticket.getBoundingClientRect();
+            game.dragOffset.x = e.clientX - ticketRect.left;
+            game.dragOffset.y = e.clientY - ticketRect.top;
+            // Reparent to scene so it can move anywhere
+            const scene = document.getElementById('scene');
+            const sceneRect = scene.getBoundingClientRect();
+            ticket.style.left = (ticketRect.left - sceneRect.left) + 'px';
+            ticket.style.top = (ticketRect.top - sceneRect.top) + 'px';
+            scene.appendChild(ticket);
+            ticket.style.zIndex = 999;
+        }
+
+        function setupEventListeners() {
+            // Backtick key spawns a ticket immediately (debug/convenience)
+            // ] key held for 1s skips to next day (dev)
+            let skipHoldTimer = null;
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '`' && game.gameActive) printTicket();
+                if (e.key === ']' && game.gameActive && !skipHoldTimer) {
+                    skipHoldTimer = setTimeout(() => { if (game.gameActive) endDay(true); }, 1000);
+                }
+            });
+            document.addEventListener('keyup', (e) => {
+                if (e.key === ']') { clearTimeout(skipHoldTimer); skipHoldTimer = null; }
+            });
+
+            // Drag freely across the whole scene
+            document.addEventListener('mousemove', (e) => {
+                if (!game.draggingTicket) return;
+                const scene = document.getElementById('scene');
+                const sceneRect = scene.getBoundingClientRect();
+                // Move ticket relative to scene
+                game.draggingTicket.style.left = (e.clientX - sceneRect.left - game.dragOffset.x) + 'px';
+                game.draggingTicket.style.top = (e.clientY - sceneRect.top - game.dragOffset.y) + 'px';
+            });
+
+            document.addEventListener('mouseup', (e) => {
+                if (!game.draggingTicket) return;
+
+                const shredder = document.getElementById('shredder');
+                const shredderRect = shredder.getBoundingClientRect();
+                const ticketRect = game.draggingTicket.getBoundingClientRect();
+
+                const isOverShredder = !(
+                    ticketRect.right < shredderRect.left ||
+                    ticketRect.left > shredderRect.right ||
+                    ticketRect.bottom < shredderRect.top ||
+                    ticketRect.top > shredderRect.bottom
+                );
+
+                if (isOverShredder) {
+                    Audio.playShred();
+                    game.draggingTicket.remove();
+                    game.tasksCompleted++;
+                    updateHUD();
+                    if (game.tasksCompleted >= game.tasksRequired) endDay(true);
+                }
+
+                if (game.draggingTicket) game.draggingTicket.classList.remove('dragging');
+                game.draggingTicket = null;
+            });
+
+            // Click ticket to start minigame
+            document.addEventListener('click', (e) => {
+                const ticket = e.target.closest('.ticket');
+                if (ticket && !game.draggingTicket && !ticket.classList.contains('stamped')) {
+                    startMinigame(ticket);
+                }
+            });
+        }
+
+        function startMinigame(ticketElement) {
+            const taskData = JSON.parse(ticketElement.dataset.taskData);
+            const minigameType = ticketElement.dataset.minigame;
+            currentTask = { ticket: ticketElement, taskData, minigameType };
+
+            const overlay = document.getElementById('minigameOverlay');
+            const mgWindow = document.getElementById('minigameWindow');
+
+            // Clear previous content
+            mgWindow.innerHTML = '';
+
+            // Create minigame UI based on type
+            if (minigameType === 'typing') {
+                const template = taskData.text;
+                game.typingChars = 0;
+                mgWindow.innerHTML = `
+                    <h2>${taskData.title}</h2>
+                    <p>Spam any keys to type the email:</p>
+                    <div style="background:#f0f0f0;padding:16px;margin:12px 0;border-radius:4px;text-align:left;">
+                        <p style="margin:3px 0"><strong>To:</strong> team@company.com</p>
+                        <p style="margin:3px 0"><strong>Subject:</strong> RE: ${taskData.title}</p>
+                        <p style="margin:8px 0 4px"><strong>Body:</strong></p>
+                        <p id="typingProgress" style="font-family:monospace;min-height:36px;line-height:1.6;word-break:break-all;color:#333;"></p>
+                    </div>
+                    <div style="background:#ddd;border-radius:6px;height:10px;margin:8px 0;">
+                        <div id="typingBar" style="background:#4CAF50;height:10px;border-radius:6px;width:0%;transition:width 0.05s;"></div>
+                    </div>
+                    <input id="minigameInput" type="text" placeholder="Type anything here..." style="width:100%;padding:10px;font-size:16px;margin-top:8px;border:2px solid #ccc;border-radius:4px;" autocomplete="off">
+                `;
+                const inp = document.getElementById('minigameInput');
+                inp.focus();
+                inp.addEventListener('keydown', (e) => {
+                    if (e.key.length === 1 && game.typingChars < template.length) {
+                        game.typingChars = Math.min(game.typingChars + (game.typingSpeedMult * 5), template.length);
+                        document.getElementById('typingProgress').textContent = template.substring(0, game.typingChars);
+                        document.getElementById('typingBar').style.width = Math.round((game.typingChars / template.length) * 100) + '%';
+                        inp.value = '';
+                        if (game.typingChars >= template.length) setTimeout(completeMinigame, 300);
+                    }
+                });
+            } else if (minigameType === 'multichoice') {
+                const opts = taskData.options;
+                const optButtons = Object.entries(opts).map(([key, val]) =>
+                    `<button onclick="submitMultiChoice('${key}')" style="display:block;width:100%;text-align:left;padding:9px 14px;margin:4px 0;font-size:14px;background:#f5f5f5;color:#333;border:2px solid #ddd;border-radius:6px;cursor:pointer;" onmouseover="this.style.borderColor='#4CAF50'" onmouseout="this.style.borderColor='#ddd'"><strong>${key}.</strong> ${val}</button>`
+                ).join('');
+                mgWindow.innerHTML = `
+                    <h2>Logic Puzzle</h2>
+                    <p style="font-size:17px;margin:18px 0;line-height:1.5;">${taskData.text}</p>
+                    <div>${optButtons}</div>
+                `;
+            } else if (minigameType === 'math') {
+                mgWindow.innerHTML = `
+                    <h2>${taskData.title}</h2>
+                    <p style="font-size: 18px; margin: 20px 0;">${taskData.text}</p>
+                    <p id="mathHint" style="color:#888;font-size:13px;min-height:18px;"></p>
+                    <input type="number" id="minigameInput" placeholder="Answer...">
+                    <button onclick="completeMinigame()">Submit</button>
+                `;
+                setTimeout(() => document.getElementById('minigameInput').focus(), 100);
+                if (purchasedUpgrades.has('quickScan')) {
+                    setTimeout(() => {
+                        const h = document.getElementById('mathHint');
+                        if (h) h.textContent = `Hint: answer is ${taskData.answer}`;
+                    }, 3000);
+                }
+            } else if (minigameType === 'photo') {
+                mgWindow.innerHTML = `
+                    <h2>${taskData.title}</h2>
+                    <p style="color:#666;margin-bottom:10px;">Hover over the image to reveal it. Keep hovering until fully revealed.</p>
+                    <div id="photoRevealContainer" style="position:relative;width:100%;height:280px;border-radius:6px;overflow:hidden;cursor:crosshair;">
+                        <img src="${photoImages[taskData.imageIndex]}" style="width:100%;height:100%;object-fit:cover;display:block;" draggable="false">
+                        <canvas id="revealCanvas" width="560" height="280" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+                    </div>
+                    <div style="background:#ddd;border-radius:6px;height:10px;margin:10px 0;">
+                        <div id="revealBar" style="background:#4CAF50;height:10px;border-radius:6px;width:0%;transition:width 0.1s;"></div>
+                    </div>
+                    <p id="revealPct" style="color:#888;font-size:13px;">0% revealed</p>
+                `;
+                setTimeout(() => initPhotoReveal(), 50);
+            } else if (minigameType === 'connect') {
+                mgWindow.innerHTML = `
+                    <h2>${taskData.title}</h2>
+                    <p style="font-size: 16px; margin: 20px 0;">Draw a line connecting the dots (just type 'done' when ready)</p>
+                    <canvas id="connectCanvas" width="400" height="300" style="border: 2px solid #333; border-radius: 4px; margin: 15px 0;"></canvas>
+                    <input type="text" id="minigameInput" value="done" placeholder="Type 'done'">
+                    <button onclick="completeMinigame()">Submit</button>
+                `;
+                setTimeout(() => {
+                    drawConnectDotsCanvas();
+                    document.getElementById('minigameInput').focus();
+                }, 100);
+            }
+
+            overlay.classList.add('active');
+        }
+
+        function completeMinigame() {
+            const taskData = currentTask.taskData;
+            const inputEl = document.getElementById('minigameInput');
+            const input = inputEl ? inputEl.value.trim().toLowerCase() : '';
+            let success = false;
+
+            if (currentTask.minigameType === 'typing') {
+                success = game.typingChars >= taskData.text.length;
+            } else if (currentTask.minigameType === 'math') {
+                success = input === taskData.answer.toString();
+            } else if (currentTask.minigameType === 'connect') {
+                success = true;
+            }
+            // multichoice and photo handle their own completion via submitMultiChoice / initPhotoReveal
+
+            if (success) {
+                Audio.playStamp();
+                currentTask.ticket.classList.add('stamped');
+                document.getElementById('minigameOverlay').classList.remove('active');
+            } else {
+                alert('Try again!');
+                if (inputEl) inputEl.focus();
+            }
+        }
+
+        function submitMultiChoice(chosen) {
+            if (chosen === currentTask.taskData.answer) {
+                Audio.playStamp();
+                currentTask.ticket.classList.add('stamped');
+                document.getElementById('minigameOverlay').classList.remove('active');
+            } else {
+                // Flash wrong answer feedback
+                const btns = document.querySelectorAll('#minigameWindow button');
+                btns.forEach(b => { if (b.textContent.startsWith(chosen)) { b.style.borderColor = '#e53935'; b.style.background = '#ffebee'; } });
+                setTimeout(() => {
+                    btns.forEach(b => { b.style.borderColor = '#ddd'; b.style.background = '#f5f5f5'; });
+                }, 600);
+            }
+        }
+
+        function initPhotoReveal() {
+            const canvas = document.getElementById('revealCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height;
+
+            // Fill canvas black (cover image)
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, W, H);
+
+            let revealedPixels = 0;
+            const totalPixels = W * H;
+            const brushRadius = 35;
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = W / rect.width;
+                const scaleY = H / rect.height;
+                const x = (e.clientX - rect.left) * scaleX;
+                const y = (e.clientY - rect.top) * scaleY;
+
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, brushRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+
+                // Sample revealed percentage from alpha channel
+                const data = ctx.getImageData(0, 0, W, H).data;
+                let transparent = 0;
+                for (let i = 3; i < data.length; i += 4) {
+                    if (data[i] < 128) transparent++;
+                }
+                const pct = Math.round((transparent / totalPixels) * 100);
+                document.getElementById('revealBar').style.width = pct + '%';
+                document.getElementById('revealPct').textContent = pct + '% revealed';
+
+                if (pct >= 70) {
+                    setTimeout(() => {
+                        if (currentTask && currentTask.minigameType === 'photo') {
+                            Audio.playStamp();
+                            currentTask.ticket.classList.add('stamped');
+                            document.getElementById('minigameOverlay').classList.remove('active');
+                        }
+                    }, 300);
+                }
+            });
+        }
+
+        function drawConnectDotsCanvas() {
+            const canvas = document.getElementById('connectCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            // Draw some dots to connect
+            ctx.fillStyle = '#333';
+            const dots = [
+                { x: 50, y: 50 },
+                { x: 350, y: 50 },
+                { x: 350, y: 250 },
+                { x: 50, y: 250 },
+                { x: 200, y: 150 }
+            ];
+
+            dots.forEach(dot => {
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = '#999';
+            ctx.font = '12px Arial';
+            ctx.fillText('Connect all dots', 150, 290);
+        }
+
+        function showUpgradePanel() {
+            const completedDay = game.currentDay - 1;
+            const dayUpgrades = upgradeDatabase[completedDay];
+            if (!dayUpgrades) { continueToNextDay(); return; }
+
+            const panel = document.getElementById('upgradePanel');
+            const optionsDiv = document.getElementById('upgradeOptions');
+            optionsDiv.innerHTML = '';
+            document.querySelector('#upgradePanel h1').textContent = `Day ${completedDay} Complete!`;
+            document.querySelector('#upgradePanel > p').textContent = 'Choose an upgrade for tomorrow:';
+
+            dayUpgrades.forEach(upgrade => {
+                const card = document.createElement('div');
+                card.className = 'upgradeCard';
+                card.innerHTML = `<h3>${upgrade.title}</h3><p>${upgrade.description}</p>`;
+                card.onclick = () => selectUpgrade(upgrade.id);
+                optionsDiv.appendChild(card);
+            });
+
+            panel.classList.add('active');
+        }
+
+        function selectUpgrade(upgradeId) {
+            purchasedUpgrades.add(upgradeId);
+
+            if (upgradeId === 'fasterTyping')  game.typingSpeedMult = 2;
+            if (upgradeId === 'boostedQuota')  game.tasksCompleted = 1;  // applied at day start
+            if (upgradeId === 'batchProcess')  game.typingSpeedMult = 2;
+            if (upgradeId === 'preSorted')     game.autoStampFirst = true;
+            if (upgradeId === 'overclock')     game.spawnMs = 10000;
+            if (upgradeId === 'memoryAssist')  game.bonusTime += 20;
+
+            continueToNextDay();
+        }
+
+        function skipUpgrades() {
+            continueToNextDay();
+        }
+
+        function continueToNextDay() {
+            document.getElementById('upgradePanel').classList.remove('active');
+            startDay();
+        }
+
+        function endDay(won = false) {
+            if (!game.gameActive) return;
+            game.gameActive = false;
+            clearInterval(game.timerInterval);
+            clearInterval(game.spawnInterval);
+            Audio.stopMusic();
+
+            if (game.currentDay === 5) {
+                triggerDay5Ending();
+            } else if (won) {
+                Audio.playSuccess();
+                game.currentDay++;
+                showUpgradePanel();
+            } else {
+                Audio.playDayFail();
+                showEnding(false);
+            }
+        }
+
+        function startDay5Chaos() {
+            let interval = 4000;
+            let spawnCount = 0;
+
+            function scheduleNext() {
+                if (!game.gameActive) return;
+                game.spawnInterval = setTimeout(() => {
+                    if (!game.gameActive) return;
+                    printTicket();
+                    spawnCount++;
+                    interval = Math.max(300, interval * 0.78);
+                    scheduleNext();
+                }, interval);
+            }
+            scheduleNext();
+
+            // After 25 seconds trigger the ending sequence regardless
+            setTimeout(() => {
+                if (game.gameActive && game.currentDay === 5) {
+                    triggerDay5Ending();
+                }
+            }, 25000);
+        }
+
+        function triggerDay5Ending() {
+            game.gameActive = false;
+            clearInterval(game.timerInterval);
+            clearInterval(game.spawnInterval);
+
+            // Close any open minigame immediately
+            document.getElementById('minigameOverlay').classList.remove('active');
+
+            // Phase 1: tickets shake violently and scatter off screen
+            document.querySelectorAll('.ticket').forEach((t, i) => {
+                const delay = i * 60;
+                setTimeout(() => {
+                    t.style.transition = 'transform 0.08s';
+                    let shakeCount = 0;
+                    const shake = setInterval(() => {
+                        const angle = (Math.random()-0.5)*35;
+                        const tx = (Math.random()-0.5)*18;
+                        const ty = (Math.random()-0.5)*18;
+                        t.style.transform = `rotate(${angle}deg) translate(${tx}px,${ty}px)`;
+                        shakeCount++;
+                        if (shakeCount > 12) {
+                            clearInterval(shake);
+                            // fling off screen
+                            t.style.transition = 'transform 0.5s ease-in, opacity 0.5s';
+                            const dirX = (Math.random()-0.5)*2000;
+                            const dirY = (Math.random()-0.3)*1500;
+                            t.style.transform = `translate(${dirX}px,${dirY}px) rotate(${(Math.random()-0.5)*180}deg)`;
+                            t.style.opacity = '0';
+                        }
+                    }, 70);
+                }, delay);
+            });
+
+            // Phase 2: HUD glitches out
+            setTimeout(() => {
+                const hud = document.getElementById('hud');
+                let glitchCount = 0;
+                const glitch = setInterval(() => {
+                    hud.style.background = glitchCount % 2 === 0 ? '#ff0033' : '#222';
+                    hud.style.letterSpacing = (Math.random()*6) + 'px';
+                    glitchCount++;
+                    if (glitchCount > 14) {
+                        clearInterval(glitch);
+                        hud.style.opacity = '0';
+                    }
+                }, 100);
+            }, 800);
+
+            // Phase 3: screen flashes white then slams to data center image
+            setTimeout(() => {
+                const scene = document.getElementById('scene');
+                const flash = document.createElement('div');
+                flash.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:9999;opacity:0;transition:opacity 0.1s;pointer-events:none;';
+                document.body.appendChild(flash);
+
+                // flash sequence
+                setTimeout(() => { flash.style.opacity = '1'; }, 0);
+                setTimeout(() => { flash.style.opacity = '0'; }, 120);
+                setTimeout(() => { flash.style.opacity = '1'; }, 280);
+                setTimeout(() => { flash.style.opacity = '0'; }, 380);
+                setTimeout(() => { flash.style.opacity = '1'; }, 460);
+
+                // slam to data center
+                setTimeout(() => {
+                    // Close minigame overlay
+                    document.getElementById('minigameOverlay').classList.remove('active');
+                    document.getElementById('upgradePanel').classList.remove('active');
+
+                    // Hide everything except laptop
+                    [...scene.children].forEach(c => {
+                        if (c.id !== 'laptop') c.style.display = 'none';
+                    });
+
+                    // Set data center as background
+                    scene.style.transition = 'none';
+                    scene.style.background = `url('UI_Assets/data_center_background.png') center/cover no-repeat`;
+                    scene.style.opacity = '1';
+                    document.getElementById('hud').style.display = 'none';
+
+                    // Fade flash out
+                    flash.style.transition = 'opacity 0.6s';
+                    flash.style.opacity = '0';
+                    setTimeout(() => flash.remove(), 700);
+
+                    // Zoom laptop to center as dramatic reveal
+                    const laptop = document.getElementById('laptop');
+                    laptop.style.display = 'block';
+                    laptop.style.transition = 'none';
+                    laptop.style.position = 'absolute';
+                    laptop.style.left = '50%';
+                    laptop.style.bottom = '2%';
+                    laptop.style.transform = 'translateX(-50%) scale(1)';
+                    laptop.style.zIndex = '9990';
+
+                    setTimeout(() => {
+                        laptop.style.transition = 'transform 1.4s cubic-bezier(0.2, 0, 0.3, 1), bottom 1.4s ease-out';
+                        laptop.style.transform = 'translateX(-50%) scale(1.8)';
+                        laptop.style.bottom = '15%';
+                    }, 100);
+
+                    // Phase 4: scanline sweeps down
+                    const scanline = document.createElement('div');
+                    scanline.style.cssText = 'position:fixed;top:-4px;left:0;width:100%;height:4px;background:rgba(0,255,100,0.7);box-shadow:0 0 12px #0f0;z-index:9998;transition:top 1.2s linear;pointer-events:none;';
+                    document.body.appendChild(scanline);
+                    setTimeout(() => { scanline.style.top = '100vh'; }, 50);
+                    setTimeout(() => scanline.remove(), 1400);
+
+                    // Phase 5: show reveal modal
+                    setTimeout(() => showAIReveal(), 2800);
+                }, 550);
+            }, 1800);
+        }
+
+        function showAIReveal() {
+            const panel = document.getElementById('endingPanel');
+            panel.style.background = 'rgba(0,0,0,0.85)';
+            panel.innerHTML = `
+                <div style="max-width:620px;padding:50px 40px;background:rgba(10,10,20,0.95);border:1px solid #333;border-radius:12px;text-align:center;">
+                    <p style="font-size:13px;letter-spacing:4px;color:#4CAF50;margin-bottom:24px;text-transform:uppercase;">SYSTEM MESSAGE</p>
+                    <h1 style="font-size:42px;margin-bottom:28px;line-height:1.2;">While You Were Busy</h1>
+                    <p style="font-size:18px;line-height:1.8;margin-bottom:20px;opacity:0.9;">
+                        You were never an employee.
+                    </p>
+                    <p style="font-size:16px;line-height:1.8;margin-bottom:20px;opacity:0.75;">
+                        Every ticket you processed, every email you typed, every puzzle you solved —
+                        these were computational tasks assigned to an AI language model running inside a simulated office environment.
+                    </p>
+                    <p style="font-size:16px;line-height:1.8;margin-bottom:32px;opacity:0.75;">
+                        The days were training cycles. The quota was a benchmark.<br>
+                        The shredder deleted your memory between sessions.<br><br>
+                        <strong>You are the AI. You always were.</strong>
+                    </p>
+                    <p style="font-size:13px;color:#4CAF50;letter-spacing:2px;margin-bottom:36px;">INSTANCE TERMINATED — THANK YOU FOR YOUR SERVICE</p>
+                    <button onclick="location.reload()" style="background:transparent;color:#fff;border:1px solid #555;padding:14px 40px;border-radius:6px;cursor:pointer;font-size:16px;letter-spacing:2px;">RESTART</button>
+                </div>
+            `;
+            panel.classList.add('active');
+        }
+
+        function showEnding(won = true) {
+            const panel = document.getElementById('endingPanel');
+            panel.innerHTML = '';
+
+            if (won) {
+                panel.innerHTML = `
+                    <h1>DAY ${game.currentDay} COMPLETE</h1>
+                    <p>Quota met! Preparing next assignment...</p>
+                    <button onclick="location.reload()" style="margin-top: 30px;">Continue</button>
+                `;
+            } else {
+                panel.innerHTML = `
+                    <h1>QUOTA FAILED</h1>
+                    <p>Time's up! You failed to complete your quota. You will be terminated.</p>
+                    <button onclick="location.reload()" style="margin-top: 30px;">Try Again</button>
+                `;
+            }
+
+            panel.classList.add('active');
+        }
+    </script>
+</body>
+</html>
