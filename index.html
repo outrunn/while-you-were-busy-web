@@ -156,6 +156,7 @@
             overflow-y: auto;
             text-align: center;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            position: relative;
         }
 
         #minigameWindow h2 { margin-bottom: 20px; color: #333; }
@@ -181,6 +182,23 @@
         }
 
         #minigameWindow button:hover { background: #45a049; }
+
+        #minigameWindow .minigameCloseButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            margin: 0;
+            padding: 0;
+            border-radius: 50%;
+            background: #eee;
+            color: #333;
+            font-size: 18px;
+            line-height: 32px;
+        }
+
+        #minigameWindow .minigameCloseButton:hover { background: #ddd; }
 
         #endingPanel {
             display: none;
@@ -589,6 +607,30 @@
                 g.gain.value = vol * 0.15;
                 src.buffer = buf;
                 src.connect(g);
+                g.connect(ctx.destination);
+                src.start();
+            },
+
+            playTyping() {
+                if (!this.ctx) return;
+                const ctx = this.ctx;
+                const duration = 0.035;
+                const buf = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < data.length; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 5);
+                }
+
+                const src = ctx.createBufferSource();
+                const filter = ctx.createBiquadFilter();
+                const g = ctx.createGain();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1800 + Math.random() * 900;
+                filter.Q.value = 5;
+                g.gain.value = 0.16;
+                src.buffer = buf;
+                src.connect(filter);
+                filter.connect(g);
                 g.connect(ctx.destination);
                 src.start();
             },
@@ -1024,6 +1066,7 @@
 
             // Clear previous content
             mgWindow.innerHTML = '';
+            overlay.classList.add('active');
 
             // Create minigame UI based on type
             if (minigameType === 'typing') {
@@ -1044,9 +1087,10 @@
                     <input id="minigameInput" type="text" placeholder="Type anything here..." style="width:100%;padding:10px;font-size:16px;margin-top:8px;border:2px solid #ccc;border-radius:4px;" autocomplete="off">
                 `;
                 const inp = document.getElementById('minigameInput');
-                inp.focus();
+                focusMinigameInput();
                 inp.addEventListener('keydown', (e) => {
-                    if (e.key.length === 1 && game.typingChars < template.length) {
+                    if (!e.repeat && e.key.length === 1 && game.typingChars < template.length) {
+                        Audio.playTyping();
                         game.typingChars = Math.min(game.typingChars + (game.typingSpeedMult * 5), template.length);
                         document.getElementById('typingProgress').textContent = template.substring(0, game.typingChars);
                         document.getElementById('typingBar').style.width = Math.round((game.typingChars / template.length) * 100) + '%';
@@ -1072,7 +1116,7 @@
                     <input type="number" id="minigameInput" placeholder="Answer...">
                     <button onclick="completeMinigame()">Submit</button>
                 `;
-                setTimeout(() => document.getElementById('minigameInput').focus(), 100);
+                setTimeout(focusMinigameInput, 100);
                 if (purchasedUpgrades.has('quickScan')) {
                     setTimeout(() => {
                         const h = document.getElementById('mathHint');
@@ -1103,14 +1147,40 @@
                 `;
                 setTimeout(() => {
                     drawConnectDotsCanvas();
-                    document.getElementById('minigameInput').focus();
+                    focusMinigameInput();
                 }, 100);
             }
 
-            overlay.classList.add('active');
+            addMinigameCloseButton();
+        }
+
+        function focusMinigameInput() {
+            const input = document.getElementById('minigameInput');
+            if (!input) return;
+            input.focus({ preventScroll: true });
+            if (typeof input.select === 'function') input.select();
+        }
+
+        function addMinigameCloseButton() {
+            const mgWindow = document.getElementById('minigameWindow');
+            if (!mgWindow || mgWindow.querySelector('.minigameCloseButton')) return;
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'minigameCloseButton';
+            closeButton.textContent = 'X';
+            closeButton.title = 'Close task';
+            closeButton.setAttribute('aria-label', 'Close task');
+            closeButton.addEventListener('click', closeMinigame);
+            mgWindow.appendChild(closeButton);
+        }
+
+        function closeMinigame() {
+            document.getElementById('minigameOverlay').classList.remove('active');
+            currentTask = null;
         }
 
         function completeMinigame() {
+            if (!currentTask) return;
             const taskData = currentTask.taskData;
             const inputEl = document.getElementById('minigameInput');
             const input = inputEl ? inputEl.value.trim().toLowerCase() : '';
@@ -1129,6 +1199,7 @@
                 Audio.playStamp();
                 currentTask.ticket.classList.add('stamped');
                 document.getElementById('minigameOverlay').classList.remove('active');
+                currentTask = null;
             } else {
                 alert('Try again!');
                 if (inputEl) inputEl.focus();
@@ -1136,13 +1207,15 @@
         }
 
         function submitMultiChoice(chosen) {
+            if (!currentTask) return;
             if (chosen === currentTask.taskData.answer) {
                 Audio.playStamp();
                 currentTask.ticket.classList.add('stamped');
                 document.getElementById('minigameOverlay').classList.remove('active');
+                currentTask = null;
             } else {
                 // Flash wrong answer feedback
-                const btns = document.querySelectorAll('#minigameWindow button');
+                const btns = document.querySelectorAll('#minigameWindow button:not(.minigameCloseButton)');
                 btns.forEach(b => { if (b.textContent.startsWith(chosen)) { b.style.borderColor = '#e53935'; b.style.background = '#ffebee'; } });
                 setTimeout(() => {
                     btns.forEach(b => { b.style.borderColor = '#ddd'; b.style.background = '#f5f5f5'; });
@@ -1193,6 +1266,7 @@
                             Audio.playStamp();
                             currentTask.ticket.classList.add('stamped');
                             document.getElementById('minigameOverlay').classList.remove('active');
+                            currentTask = null;
                         }
                     }, 300);
                 }
