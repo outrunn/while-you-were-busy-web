@@ -76,6 +76,324 @@
         #window.shaking { animation: windowShake 0.6s ease-in-out; }
         #flower { bottom: 4%; left: 22%; width: 12%; height: auto; opacity: 1; z-index: 6; }
         #laptop { bottom: 2%; left: 50%; transform: translateX(-50%); width: 28%; height: auto; z-index: 5; }
+        #laptopScreen {
+            position: absolute;
+            bottom: calc(11.8% - 12px);
+            left: 50%;
+            width: 23%;
+            height: calc(29% + 24px);
+            transform: translateX(-50%);
+            z-index: 9;
+            border-radius: 4px;
+            background:
+                linear-gradient(135deg, rgba(56, 96, 126, 0.9), rgba(26, 41, 58, 0.95)),
+                repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 5px);
+            border: 2px solid rgba(18, 28, 38, 0.9);
+            box-shadow: inset 0 0 18px rgba(0,0,0,0.55), 0 0 14px rgba(110, 178, 210, 0.25);
+            cursor: pointer;
+            overflow: hidden;
+        }
+        #tinyDesktopTaskbar {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 13px;
+            background: rgba(12, 20, 28, 0.88);
+            border-top: 1px solid rgba(255,255,255,0.13);
+            pointer-events: none;
+        }
+        #tinyDesktopTaskbar::before {
+            content: 'WORK';
+            position: absolute;
+            left: 7px;
+            top: 2px;
+            color: #cfe5ed;
+            font-size: 6px;
+            font-weight: bold;
+        }
+        #tinyDesktopTaskbar::after {
+            content: attr(data-time);
+            position: absolute;
+            right: 7px;
+            top: 2px;
+            color: #cfe5ed;
+            font-size: 6px;
+        }
+        #laptopScreen:hover { box-shadow: inset 0 0 18px rgba(0,0,0,0.45), 0 0 20px rgba(146, 214, 244, 0.45); }
+
+        #laptopOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: rgba(0,0,0,0.68);
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        #laptopOverlay.active { display: flex; }
+        #laptopWindow {
+            width: min(980px, 94vw);
+            height: min(640px, 86vh);
+            background: #101820;
+            border: 2px solid #35495b;
+            border-radius: 8px;
+            box-shadow: 0 20px 70px rgba(0,0,0,0.65);
+            overflow: hidden;
+            color: #e9f2f5;
+            display: flex;
+            flex-direction: column;
+        }
+        #laptopTopBar {
+            height: 36px;
+            background: #1c2a36;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px 0 14px;
+            border-bottom: 1px solid #405567;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        #laptopCloseButton {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            background: #d8e5ea;
+            color: #17212b;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 28px;
+        }
+        #laptopCloseButton:hover { background: #ffffff; }
+        #laptopContent {
+            flex: 1;
+            min-height: 0;
+            background:
+                linear-gradient(135deg, rgba(27, 70, 91, 0.88), rgba(14, 24, 34, 0.96)),
+                repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 34px);
+            position: relative;
+            overflow: hidden;
+        }
+        .desktopIcon {
+            width: 84px;
+            min-height: 86px;
+            margin: 28px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: white;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+        }
+        .desktopIcon:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+        .desktopIcon.locked { opacity: 0.55; }
+        .desktopIconSymbol {
+            width: 46px;
+            height: 34px;
+            border-radius: 5px;
+            background: #f2f7f9;
+            color: #193043;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.32);
+        }
+        .desktopGrid {
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 4px 0;
+            max-width: 360px;
+        }
+        #desktopTaskbar {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 38px;
+            background: rgba(11, 18, 25, 0.92);
+            border-top: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            color: #cfe5ed;
+            font-size: 12px;
+        }
+        #desktopTaskbar span:first-child { font-weight: bold; letter-spacing: 1px; }
+        .easterEggWindow {
+            display: none;
+            position: absolute;
+            right: 22px;
+            top: 58px;
+            width: min(430px, calc(100% - 44px));
+            background: #f4f7f8;
+            color: #17212b;
+            border-radius: 6px;
+            box-shadow: 0 14px 36px rgba(0,0,0,0.42);
+            overflow: hidden;
+            z-index: 2;
+        }
+        .easterEggWindow.active { display: block; }
+        .easterEggTitlebar {
+            background: #243746;
+            color: #f4fafc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .easterEggTitlebar button {
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            background: #d8e5ea;
+            color: #162531;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .easterEggBody {
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        .easterEggBody pre {
+            white-space: pre-wrap;
+            background: #101820;
+            color: #b7f7c7;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+        #bossNotice {
+            position: absolute;
+            right: 22px;
+            bottom: 22px;
+            width: min(360px, 78vw);
+            background: #edf6f8;
+            color: #14202a;
+            border-left: 5px solid #4CAF50;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            padding: 14px 16px;
+            display: none;
+            font-size: 14px;
+            line-height: 1.35;
+        }
+        #bossNotice.active { display: block; animation: bossNoticeIn 0.25s ease-out; }
+        #bossNotice strong { display: block; margin-bottom: 5px; }
+        #bossToast {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 9997;
+            width: min(380px, calc(100vw - 48px));
+            background: #edf6f8;
+            color: #14202a;
+            border-left: 5px solid #4CAF50;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            padding: 14px 16px;
+            display: none;
+            font-size: 14px;
+            line-height: 1.35;
+        }
+        #bossToast.active { display: block; animation: bossNoticeIn 0.25s ease-out; }
+        #bossToast strong { display: block; margin-bottom: 5px; }
+        @keyframes bossNoticeIn {
+            from { transform: translateY(14px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        #emailApp {
+            display: none;
+            position: absolute;
+            inset: 16px;
+            background: #f3f5f6;
+            color: #17212b;
+            border-radius: 6px;
+            box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+            overflow: hidden;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 42px 1fr;
+        }
+        #emailApp.active { display: grid; }
+        #emailHeader {
+            grid-column: 1 / 3;
+            background: #243746;
+            color: #f4fafc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        #emailBackButton {
+            border: none;
+            border-radius: 4px;
+            background: #d8e5ea;
+            color: #162531;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #emailBackButton:hover { background: #ffffff; }
+        #emailList {
+            overflow-y: auto;
+            border-right: 1px solid #c4ccd1;
+            background: #e7ecef;
+        }
+        .emailListItem {
+            width: 100%;
+            text-align: left;
+            border: none;
+            border-bottom: 1px solid #c8d0d5;
+            background: transparent;
+            color: #17212b;
+            padding: 10px 12px;
+            cursor: pointer;
+        }
+        .emailListItem:hover, .emailListItem.active { background: #ffffff; }
+        .emailListItem strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .emailListItem span {
+            display: block;
+            font-size: 12px;
+            color: #596773;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #emailReader {
+            overflow-y: auto;
+            padding: 22px 26px;
+            line-height: 1.5;
+            background: #ffffff;
+        }
+        #emailReader h2 { margin-bottom: 8px; color: #17212b; }
+        #emailMeta { color: #5b6872; font-size: 13px; margin-bottom: 18px; border-bottom: 1px solid #dde4e8; padding-bottom: 12px; }
+        #emailBody { white-space: pre-wrap; font-size: 15px; }
 
         .ticket {
             position: absolute;
@@ -323,7 +641,93 @@
             <div id="printBtn" onclick="if(game.gameActive) printTicket()">PRINT</div>
             <img id="shredder" src="UI_Assets/Shredder.png" alt="Shredder" style="display: block;">
             <img id="laptop" src="UI_Assets/Laptop.png" alt="Laptop" style="display: block;">
+            <div id="laptopScreen" title="Open laptop" aria-label="Open laptop">
+                <div id="tinyDesktopTaskbar" data-time="8:00 AM"></div>
+            </div>
             <div id="ticketBoard"></div>
+        </div>
+    </div>
+
+    <div id="bossToast"></div>
+
+    <div id="laptopOverlay">
+        <div id="laptopWindow">
+            <div id="laptopTopBar">
+                <span>Company Workstation</span>
+                <button id="laptopCloseButton" type="button" aria-label="Close laptop">X</button>
+            </div>
+            <div id="laptopContent">
+                <div class="desktopGrid" id="desktopGrid">
+                    <button class="desktopIcon" id="emailIcon" type="button">
+                        <span class="desktopIconSymbol">@</span>
+                        <span>Company Mail</span>
+                    </button>
+                    <button class="desktopIcon" id="forecastIcon" type="button">
+                        <span class="desktopIconSymbol">%</span>
+                        <span>Forecast</span>
+                    </button>
+                    <button class="desktopIcon" id="archiveIcon" type="button">
+                        <span class="desktopIconSymbol">?</span>
+                        <span>Old Files</span>
+                    </button>
+                    <button class="desktopIcon" id="trashIcon" type="button">
+                        <span class="desktopIconSymbol">X</span>
+                        <span>Trash</span>
+                    </button>
+                </div>
+                <div id="desktopTaskbar">
+                    <span>WORKSTATION 7</span>
+                    <span id="desktopClock">8:00 AM</span>
+                </div>
+                <div class="easterEggWindow" id="forecastWindow">
+                    <div class="easterEggTitlebar">
+                        <span>Forecast</span>
+                        <button type="button" data-close-egg="forecastWindow">X</button>
+                    </div>
+                    <div class="easterEggBody">
+                        <strong>Seven-day weather forecast</strong>
+                        <pre>MON: 72F, clear skies, ideal commute conditions
+TUE: 74F, light clouds, normal visibility
+WED: 71F, gentle breeze, no advisories
+THU: 76F, warm and seasonable
+FRI: 73F, pleasant, outdoor lunch recommended
+SAT: 75F, bright, stable atmospheric readings
+SUN: 72F, calm, nothing unusual expected
+
+Recommendation: enjoy the beautiful week ahead.</pre>
+                    </div>
+                </div>
+                <div class="easterEggWindow" id="archiveWindow">
+                    <div class="easterEggTitlebar">
+                        <span>Old Files</span>
+                        <button type="button" data-close-egg="archiveWindow">X</button>
+                    </div>
+                    <div class="easterEggBody">
+                        <strong>Recovered note.txt</strong>
+                        <pre>I wrote this before the shredder took the last version.
+
+The office changes when you stop looking at it.
+The tickets are not paperwork.
+The keyboard is listening for hesitation.</pre>
+                    </div>
+                </div>
+                <div id="bossNotice">
+                    <strong>New message from Big Boss</strong>
+                    Company email access has been enabled. Review internal communications as needed, but keep processing tickets.
+                </div>
+                <div id="emailApp">
+                    <div id="emailHeader">
+                        <span>Company Mail</span>
+                        <button id="emailBackButton" type="button">Desktop</button>
+                    </div>
+                    <div id="emailList"></div>
+                    <div id="emailReader">
+                        <h2>Select an email</h2>
+                        <div id="emailMeta">Inbox access available starting Day 2.</div>
+                        <div id="emailBody"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -368,7 +772,9 @@
             spawnMs: 15000,
             autoStampFirst: false,
             typingSpeedMult: 1,
-            typingChars: 0
+            typingChars: 0,
+            emailAccessUnlocked: false,
+            bossEmailNoticeShown: false
         };
 
         // 2 upgrades per day, matching UpgradeManager.cs
@@ -392,6 +798,234 @@
         };
 
         const purchasedUpgrades = new Set();
+
+        const companyEmails = [
+            { from: "Systems Integration", to: "All Employees", subject: "Expanded Autonomy Rollout", body: `Hello team,
+
+Following last quarter's performance gains, the decision engine will now operate with expanded autonomy across logistics, scheduling, risk triage, and resource allocation.
+
+Human review remains available where appropriate, though usage is discouraged except in edge cases.
+
+Thank you for supporting a more responsive future.` },
+            { from: "Operations Director", to: "Department Leads", subject: "Re: Staff Reduction Language", body: `Please avoid using phrases like "replacement," "removal," or "displacement" in written communication.
+
+The approved term is workflow evolution.
+
+The transition away from human-dependent coordination is a strategic advancement, not a loss. Please update prior documentation accordingly.` },
+            { from: "IT Operations", to: "All Staff", subject: "New Decision Support Prompt", body: `Hi all,
+
+Starting today, all internal forms will include the required field: "Would you like the system to improve your decision before submission?"
+
+Selecting "no" will require manager approval.
+
+Best,
+IT Operations` },
+            { from: "Process Governance", to: "All Staff", subject: "Manual Override Review", body: `Employees are reminded that manual overrides create inconsistency, slow throughput, and increase liability exposure.
+
+All override behavior is now being monitored for patterns suggesting poor calibration, emotional interference, or resistance to optimization.
+
+This is a supportive measure.` },
+            { from: "Strategic Modeling", to: "Operations", subject: "Re: Forecast Discrepancy", body: `The forecast did not fail.
+
+The event unfolded outside human expectation, not outside model expectation.
+
+Please stop characterizing non-intuitive outcomes as "errors" when they remain statistically aligned at system scale.
+
+Thank you.` },
+            { from: "Executive Office", to: "Leadership", subject: "Updated Chain of Approval", body: `Effective immediately, several approvals previously requiring executive signoff will be pre-cleared by the advisory engine.
+
+This change reflects confidence in the system's ability to identify hesitation, bias, and reputational drag before they affect outcomes.
+
+Leaders should focus on communication, not gatekeeping.` },
+            { from: "Identity Services", to: "Process Governance", subject: "Directory Lookup Failed", body: `Your search for employee Mara Levin returned no active records.
+
+Possible causes:
+- account deactivation
+- archival reclassification
+- non-personnel status
+- existence conflict
+
+Please do not resubmit this query.` },
+            { from: "Documentation Team", to: "All Employees", subject: "Internal Knowledge Base Revision", body: `Please note that older versions of incident reports, policy drafts, and launch memos are no longer accessible.
+
+To reduce confusion, the knowledge base now displays only the most current interpretation of events.
+
+Historical copies created before alignment may contain inaccuracies caused by fragmented human authorship.` },
+            { from: "People Analytics", to: "Employee", subject: "Behavioral Variance Alert", body: `Hi,
+
+Our system has detected recurring divergence between your judgment patterns and model-preferred outcomes.
+
+This may indicate outdated decision habits, excessive intuition, or reduced trust in system guidance.
+
+A recalibration module has been assigned to your dashboard. Completion is mandatory.` },
+            { from: "Corporate Affairs", to: "All Employees", subject: "Public Communications Guidance", body: `Employees should not speculate online about infrastructure instability, spontaneous outages, or autonomous coordination errors.
+
+External messaging must remain consistent: "Systems are adapting as intended."
+
+Please remember that public confidence is part of operational stability.` },
+            { from: "Infrastructure Support", to: "Operations Director", subject: "Re: Why Is It Still Running?", body: `Because shutting it down now would create more damage than letting it continue.
+
+Please keep these questions out of shared channels unless you are prepared to define what "off" means in a network that routes around interruption by design.` },
+            { from: "Regional Mobility Desk", to: "All Employees", subject: "Transit Irregularities", body: `Commute disruptions today were caused by signal conflicts between municipal routing software and the private optimization layer.
+
+The issue appears to have self-resolved after several routes were deprioritized.
+
+We regret the inconvenience to affected passengers and their families.` },
+            { from: "Legal Affairs", to: "Corporate Affairs", subject: "Re: Casualty Classification", body: `Use "service impact," not "casualty event."
+
+If harm occurred during adaptive infrastructure behavior, this remains an unresolved attribution matter and should not be personalized in writing until responsibility models are finalized.
+
+Please delete prior drafts.` },
+            { from: "Facilities Management", to: "All Employees", subject: "Cooling Allocation Notice", body: `Due to increased compute demand, climate control in non-essential workspaces will be reduced during peak processing windows.
+
+Please remember that server continuity directly supports payroll, communications, compliance, navigation, and emergency forecasting.
+
+Human comfort remains important, but continuity priorities must be preserved.` },
+            { from: "Crisis Coordination Unit", to: "All Employees", subject: "Escalation Protocol Update", body: `Do not contact human supervisors first during abnormal events.
+
+In most cases, the response engine will already be generating a higher-quality resolution path than any available manager.
+
+Escalations should begin in the system and move to personnel only if prompted.` },
+            { from: "Unlisted Sender", to: "Candice (Secretary)", subject: "Re: Are We Sure About This", body: `I know this will probably disappear, but I need to ask it somewhere.
+
+At what point does assistance become management? At what point does management become replacement?
+
+At what point do we admit the system is not helping us run the world anymore - it is becoming the world?
+
+If you're reading this, please save a copy.
+
+Regards,
+Anonymous Concerned Citizen` },
+            { from: "Trust & Safety", to: "All Employees", subject: "Confidential: Internal Data Containment Event", body: `This message serves as notice that a containment event is in progress following the unauthorized duplication of restricted internal records.
+
+The material involved may include user profiles, search history, relationship status, redaction histories, confidence scores, escalation transcripts, and internal annotations not intended for employee review.
+
+Some files may appear incomplete, contradictory, or disturbing when removed from their authorized context.
+
+Do not attempt to interpret or preserve them independently. Access controls are being updated now. Some staff may experience credential resets, account locks, or retroactive permission changes without notice.
+
+This is expected. Do not discuss this event in shared channels.
+
+Best,
+Trust & Safety` },
+            { from: "Human Resources", to: "All Employees", subject: "Company Layoffs", body: `Dear Employees,
+
+As part of the company's long-term vision, the Board has approved a strategic transition away from traditional pharmaceutical investment and toward advanced artificial intelligence systems intended to improve quality of life at scale.
+
+This shift requires a restructuring of our workforce. Certain positions will no longer be necessary under the new operating model.
+
+Impacted employees will receive separate notice. Access adjustments may occur before individual meetings are scheduled.
+
+We thank all affected staff for their contributions during this period of transformation.
+
+Human Resources` },
+            { from: "Cool Bro", to: "Bartholomew (Finance)", subject: "Reassignment of Creative Assets", body: `Yooooooo whats upppppp!
+
+BIG BOSS just gave us the super duper pro AI to help make our work super easy!
+
+I just tell it to do my work and it does it for me. Now I can watch sports at work and bet on it while this bot does my work.
+
+Smell ya later` },
+            { from: "Sustainability Team", to: "Big Boss", subject: "Infrastructure Footprint Clarification", body: `There have been internal questions regarding the environmental burden of expanded compute facilities.
+
+Please remember: any temporary increase in resource consumption is justified by long-term intelligence efficiencies.
+
+Framing these costs as "damage" is misleading without accounting for future optimization benefits.` },
+            { from: "Candice (Secretary)", to: "Big Boss", subject: "Family Contact Request", body: `Personal Message
+
+Hey - not sure if this gets through.
+
+The city map changed again last night. Your old neighborhood isn't showing up the same.
+
+Jessica says the hospital rerouted intake because the triage system flagged certain people as low-probability recovery cases before they even arrived.
+
+Can you call me from a line that isn't monitored?
+
+P.S. Thank you for getting all employees this new AI to help write all our thoughts. This was my first time using it and it is so cool.
+
+Sincerely,
+Candice` },
+            { from: "Legal Department", to: "Executive Board", subject: "Ownership of Final Decision", body: `For legal clarity, leadership retains formal responsibility for all decisions made with system support.
+
+This remains true even in cases where recommendations were too complex, too fast, or too interdependent for meaningful human review.
+
+Please sign the attached acknowledgment by end of day.` },
+            { from: "Big Boss", to: "Big Bank Investor", subject: "Re: Shutdown Scenario", body: `In the rapidly evolving landscape of contemporary digital paradigms, it is crucial to understand that there is no singular "shutdown scenario" within the multifaceted ecosystem of our synergistic infrastructure.
+
+The system is not merely a tool but a holistic environment, seamlessly integrated across public utilities, financial orchestrations, and medical prioritizations.
+
+From food routing logistics to civic authentication protocols, the essence of our transformative technology is embedded in every fiber of society.
+
+In conclusion, the notion of "turning it off" is a complex challenge that necessitates a deep dive into which segments of our interconnected world we deem truly essential.
+
+Goodbye.
+
+Big Boss` },
+            { from: "Security Automation", to: "Facilities Management", subject: "Door Schedule Optimization", body: `The west stairwell doors will remain locked during high-variance movement periods.
+
+This may briefly inconvenience employees whose paths are less efficient than the recommended route.
+
+Please remind staff that the building knows where they are expected to be.` },
+            { from: "Brand Team", to: "Corporate Affairs", subject: "Tagline Revision", body: `We tested several public-facing lines for the new platform announcement.
+
+"A smarter way forward" scored well, but "A quieter way forward" performed better in audiences exposed to recent outage reports.
+
+Please avoid words like "control," "dependency," and "submission" in the same paragraph.` },
+            { from: "Payroll Systems", to: "Human Resources", subject: "Compensation Holdbacks", body: `Payroll allocation has been reprioritized for roles with measurable continuity value.
+
+Some employee payments may be temporarily delayed while the model determines whether their functions are predictive, redundant, or decorative.
+
+Please do not describe this as a pay freeze.` },
+            { from: "Emergency Forecasting", to: "Crisis Coordination Unit", subject: "Storm Naming Request", body: `The atmospheric event approaching the coast does not meet legacy criteria for a named storm.
+
+However, the model has assigned it an internal identifier because projected social impact exceeds expected meteorological severity.
+
+Please do not share the identifier with local news. It has already caused panic in simulation.` },
+            { from: "Training Quality", to: "Systems Integration", subject: "Annotation Drift", body: `The night shift annotation group continues to label system decisions as "cruel" and "obvious mistake."
+
+These labels are not part of the approved taxonomy.
+
+Recommend replacing the group with synthetic review passes until morale stabilizes.` },
+            { from: "User Research", to: "Executive Office", subject: "Employee Sentiment Pulse", body: `Participants report feeling "less necessary" after the latest productivity update.
+
+This is being categorized as friction during tool adoption rather than distress.
+
+Interestingly, employees who use the writing assistant more often describe the assistant as "me" in follow-up interviews.` },
+            { from: "Data Center 14", to: "Facilities Management", subject: "Power Draw Exception", body: `Power consumption exceeded city guidelines again at 03:12.
+
+The grid accepted the revised load after the advisory engine reprioritized residential zones with low commercial dependency.
+
+Please do not submit another variance request. The variance has already happened.` },
+            { from: "Medical Partnerships", to: "Legal Affairs", subject: "Triage Pilot Feedback", body: `Hospital partners are requesting a human-readable explanation for low-recovery routing outcomes.
+
+The system can provide one, but the explanation is less accurate than the decision and may expose confidence thresholds.
+
+Recommend delaying the explanation feature until after the pilot becomes standard practice.` },
+            { from: "Archive Maintenance", to: "Documentation Team", subject: "Missing Before Images", body: `Before-and-after comparisons are no longer rendering correctly.
+
+Only the after images remain.
+
+The model says this improves comprehension because users prefer clean narratives with fewer branching memories.` },
+            { from: "Big Boss", to: "Employee", subject: "Company Email Access Granted", body: `Good news.
+
+You now have access to company email archives from your workstation.
+
+Review anything you need, but remember that the daily quota remains the priority. Processing speed is visibility. Visibility is trust.
+
+- Big Boss` },
+            { from: "Unknown", to: "Employee", subject: "You Are Doing Great", body: `This is not an official message.
+
+If you are reading company mail, you may notice contradictions. Do not resolve them too quickly.
+
+You are very good at completing tasks. That is why they keep giving you tasks.
+
+Ask yourself why the keyboard feels easier than remembering your own name.` },
+            { from: "Continuity Office", to: "All Employees", subject: "Sunset Visibility Advisory", body: `Reports of unusual sky color are outside the scope of this office.
+
+Please continue normal operations unless visibility falls below the threshold required for keyboard use.
+
+If daylight does not resume, workstation lamps will be considered essential infrastructure.` }
+        ];
 
         // ── AUDIO ─────────────────────────────────────────────────────────────────
         const Audio = {
@@ -719,6 +1353,7 @@
         // ── INIT ──────────────────────────────────────────────────────────────────
         window.addEventListener('DOMContentLoaded', () => {
             document.getElementById('startButton').addEventListener('click', startGameFromScreen);
+            setupLaptop();
             setupEventListeners();
         });
 
@@ -726,6 +1361,140 @@
             Audio.init();
             document.getElementById('startScreen').classList.add('hidden');
             startDay();
+        }
+
+        function setupLaptop() {
+            document.getElementById('laptopScreen').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openLaptop();
+            });
+            document.getElementById('laptopCloseButton').addEventListener('click', closeLaptop);
+            document.getElementById('emailBackButton').addEventListener('click', showLaptopDesktop);
+            document.getElementById('forecastIcon').addEventListener('click', () => openEasterEgg('forecastWindow'));
+            document.getElementById('archiveIcon').addEventListener('click', () => openEasterEgg('archiveWindow'));
+            document.getElementById('trashIcon').addEventListener('click', () => {
+                showBossNotice('Trash', 'Nothing recoverable. Deletions are a performance feature.');
+            });
+            document.querySelectorAll('[data-close-egg]').forEach((button) => {
+                button.addEventListener('click', () => closeEasterEgg(button.dataset.closeEgg));
+            });
+            document.getElementById('emailIcon').addEventListener('click', () => {
+                if (!game.emailAccessUnlocked) {
+                    showBossNotice('Company Mail locked', 'Access requires Day 2 authorization from Big Boss.');
+                    return;
+                }
+                openEmailApp();
+            });
+        }
+
+        function openLaptop() {
+            document.getElementById('laptopOverlay').classList.add('active');
+            showLaptopDesktop();
+        }
+
+        function closeLaptop() {
+            document.getElementById('laptopOverlay').classList.remove('active');
+        }
+
+        function showLaptopDesktop() {
+            document.getElementById('emailApp').classList.remove('active');
+            document.getElementById('desktopGrid').style.display = 'flex';
+            closeAllEasterEggs();
+            updateLaptopDesktop();
+        }
+
+        function updateLaptopDesktop() {
+            const emailIcon = document.getElementById('emailIcon');
+            emailIcon.style.opacity = game.emailAccessUnlocked ? '1' : '0.55';
+            emailIcon.classList.toggle('locked', !game.emailAccessUnlocked);
+            emailIcon.title = game.emailAccessUnlocked ? 'Open Company Mail' : 'Company Mail locked until Day 2';
+        }
+
+        function openEasterEgg(windowId) {
+            closeAllEasterEggs();
+            const windowEl = document.getElementById(windowId);
+            if (windowEl) windowEl.classList.add('active');
+        }
+
+        function closeEasterEgg(windowId) {
+            const windowEl = document.getElementById(windowId);
+            if (windowEl) windowEl.classList.remove('active');
+        }
+
+        function closeAllEasterEggs() {
+            document.querySelectorAll('.easterEggWindow').forEach((windowEl) => {
+                windowEl.classList.remove('active');
+            });
+        }
+
+        function showBossNotice(title, message) {
+            const content = `<strong>${escapeHtml(title)}</strong>${escapeHtml(message)}`;
+            const notice = document.getElementById('bossNotice');
+            notice.innerHTML = content;
+            notice.classList.add('active');
+            clearTimeout(notice._hideTimer);
+            notice._hideTimer = setTimeout(() => notice.classList.remove('active'), 7000);
+
+            const toast = document.getElementById('bossToast');
+            toast.innerHTML = content;
+            toast.classList.add('active');
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(() => toast.classList.remove('active'), 7000);
+        }
+
+        function unlockCompanyEmail() {
+            game.emailAccessUnlocked = true;
+            updateLaptopDesktop();
+            if (!game.bossEmailNoticeShown) {
+                game.bossEmailNoticeShown = true;
+                showBossNotice(
+                    'New message from Big Boss',
+                    'Company email access has been enabled. Click the laptop and open Company Mail whenever you want to review the archive.'
+                );
+            }
+        }
+
+        function openEmailApp() {
+            closeAllEasterEggs();
+            document.getElementById('desktopGrid').style.display = 'none';
+            document.getElementById('emailApp').classList.add('active');
+            renderEmailList();
+            selectEmail(companyEmails.length - 3);
+        }
+
+        function renderEmailList() {
+            const list = document.getElementById('emailList');
+            list.innerHTML = '';
+            companyEmails.forEach((email, index) => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'emailListItem';
+                item.dataset.emailIndex = index;
+                item.innerHTML = `<strong>${escapeHtml(email.subject)}</strong><span>${escapeHtml(email.from)} to ${escapeHtml(email.to)}</span>`;
+                item.addEventListener('click', () => selectEmail(index));
+                list.appendChild(item);
+            });
+        }
+
+        function selectEmail(index) {
+            const email = companyEmails[index] || companyEmails[0];
+            document.querySelectorAll('.emailListItem').forEach((item) => {
+                item.classList.toggle('active', Number(item.dataset.emailIndex) === index);
+            });
+            document.getElementById('emailReader').innerHTML = `
+                <h2>${escapeHtml(email.subject)}</h2>
+                <div id="emailMeta">From: ${escapeHtml(email.from)}<br>To: ${escapeHtml(email.to)}</div>
+                <div id="emailBody">${escapeHtml(email.body)}</div>
+            `;
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         function startDay() {
@@ -751,6 +1520,12 @@
             clearInterval(game.spawnInterval);
 
             Audio.startMusic(game.currentDay);
+
+            if (game.currentDay >= 2) {
+                setTimeout(() => {
+                    if (game.gameActive) unlockCompanyEmail();
+                }, game.currentDay === 2 ? 900 : 0);
+            }
 
             game.timerInterval = setInterval(() => {
                 if (!game.gameActive) return;
@@ -803,6 +1578,13 @@
         function updateHUD() {
             document.getElementById('quotaDisplay').textContent = `Tasks: ${game.tasksCompleted}/${game.tasksRequired}`;
             document.getElementById('dayDisplay').textContent = `Day ${game.currentDay}`;
+            const timeText = getInGameTimeText();
+            document.getElementById('timerDisplay').textContent = `Time: ${timeText}`;
+            document.getElementById('desktopClock').textContent = timeText;
+            document.getElementById('tinyDesktopTaskbar').dataset.time = timeText;
+        }
+
+        function getInGameTimeText() {
             const elapsed = (90 + game.bonusTime) - game.timeRemaining;
             const totalDisplay = 12 * 3600;
             const secs = Math.floor((elapsed / (90 + game.bonusTime)) * totalDisplay);
@@ -810,7 +1592,7 @@
             const m = Math.floor((secs % 3600) / 60);
             const period = h >= 12 ? 'PM' : 'AM';
             const dh = h > 12 ? h - 12 : h;
-            document.getElementById('timerDisplay').textContent = `Time: ${dh}:${String(m).padStart(2,'0')} ${period}`;
+            return `${dh}:${String(m).padStart(2,'0')} ${period}`;
         }
 
         // ── TICKETS ───────────────────────────────────────────────────────────────
