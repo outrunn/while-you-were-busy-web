@@ -75,23 +75,157 @@
         }
         #window.shaking { animation: windowShake 0.6s ease-in-out; }
         #flower { bottom: 4%; left: 22%; width: 12%; height: auto; opacity: 1; z-index: 6; }
-        #laptop { bottom: 2%; left: 50%; transform: translateX(-50%); width: 28%; height: auto; z-index: 5; }
+        #laptopRig {
+            position: absolute;
+            bottom: 4%;
+            left: 50%;
+            width: min(440px, 34vw);
+            aspect-ratio: 1.42 / 1;
+            transform: translateX(-50%);
+            z-index: 5;
+            cursor: pointer;
+        }
+        #laptopLid {
+            position: absolute;
+            left: 7%;
+            right: 7%;
+            top: 0;
+            height: 72%;
+            background: linear-gradient(145deg, #2f383d, #12181c);
+            border: 5px solid #20282c;
+            border-radius: 10px 10px 6px 6px;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08), 0 8px 18px rgba(0,0,0,0.35);
+            overflow: hidden;
+        }
+        #laptopHinge {
+            position: absolute;
+            left: 14%;
+            right: 14%;
+            top: 70%;
+            height: 5%;
+            background: linear-gradient(#2a3034, #111518);
+            border-radius: 0 0 10px 10px;
+            z-index: 2;
+        }
+        #laptopBase {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 29%;
+            background: linear-gradient(#6b7070, #3d4142);
+            clip-path: polygon(8% 0, 92% 0, 100% 74%, 96% 100%, 4% 100%, 0 74%);
+            box-shadow: 0 10px 16px rgba(0,0,0,0.35);
+        }
+        #laptopKeyboard {
+            position: absolute;
+            left: 15%;
+            right: 15%;
+            top: 12%;
+            height: 34%;
+            background:
+                repeating-linear-gradient(90deg, transparent 0, transparent 7%, rgba(20,22,23,0.45) 7%, rgba(20,22,23,0.45) 8%),
+                repeating-linear-gradient(0deg, #343839 0, #343839 42%, #252829 42%, #252829 48%);
+            border: 1px solid rgba(0,0,0,0.4);
+            transform: perspective(180px) rotateX(20deg);
+        }
+        #laptopTrackpad {
+            position: absolute;
+            left: 38%;
+            right: 38%;
+            bottom: 16%;
+            height: 21%;
+            background: linear-gradient(#858a89, #5f6464);
+            border: 1px solid rgba(0,0,0,0.38);
+            border-radius: 2px;
+        }
+        #laptopFrontNotch {
+            position: absolute;
+            left: 42%;
+            right: 42%;
+            bottom: 4%;
+            height: 5%;
+            background: rgba(20,22,23,0.45);
+            border-radius: 0 0 8px 8px;
+        }
+        #laptopShadow {
+            position: absolute;
+            left: 2%;
+            right: 2%;
+            bottom: -3%;
+            height: 9%;
+            background: rgba(0,0,0,0.28);
+            filter: blur(8px);
+            border-radius: 50%;
+            z-index: -1;
+        }
         #laptopScreen {
             position: absolute;
-            bottom: calc(11.8% - 12px);
-            left: 50%;
-            width: 23%;
-            height: calc(29% + 24px);
-            transform: translateX(-50%);
-            z-index: 9;
+            inset: 4.5% 4.5% 8% 4.5%;
+            z-index: 1;
             border-radius: 4px;
             background:
-                linear-gradient(135deg, rgba(56, 96, 126, 0.9), rgba(26, 41, 58, 0.95)),
+                linear-gradient(135deg, rgba(56, 96, 126, 0.92), rgba(26, 41, 58, 0.97)),
                 repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 5px);
             border: 2px solid rgba(18, 28, 38, 0.9);
             box-shadow: inset 0 0 18px rgba(0,0,0,0.55), 0 0 14px rgba(110, 178, 210, 0.25);
             cursor: pointer;
             overflow: hidden;
+        }
+        #laptopScreen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(255,255,255,0.08), transparent 38%);
+            pointer-events: none;
+        }
+        #laptopScreen::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 4px);
+            pointer-events: none;
+        }
+        #laptopScreen:hover {
+            box-shadow: inset 0 0 18px rgba(0,0,0,0.45), 0 0 20px rgba(146, 214, 244, 0.45);
+        }
+        #laptopScreenHitArea {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+        }
+        #tinyDesktopIcons {
+            position: absolute;
+            top: 10%;
+            left: 9%;
+            display: grid;
+            grid-template-columns: repeat(2, 34px);
+            gap: 10px 14px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .tinyPreviewIcon {
+            width: 34px;
+            min-height: 36px;
+            color: #dceff5;
+            font-size: 6px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.65);
+        }
+        .tinyPreviewIconSymbol {
+            width: 22px;
+            height: 17px;
+            margin: 0 auto 3px;
+            border-radius: 3px;
+            background: #e8f2f6;
+            color: #1c3140;
+            font-size: 9px;
+            line-height: 17px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.35);
         }
         #tinyDesktopTaskbar {
             position: absolute;
@@ -102,6 +236,7 @@
             background: rgba(12, 20, 28, 0.88);
             border-top: 1px solid rgba(255,255,255,0.13);
             pointer-events: none;
+            z-index: 2;
         }
         #tinyDesktopTaskbar::before {
             content: 'WORK';
@@ -120,7 +255,18 @@
             color: #cfe5ed;
             font-size: 6px;
         }
-        #laptopScreen:hover { box-shadow: inset 0 0 18px rgba(0,0,0,0.45), 0 0 20px rgba(146, 214, 244, 0.45); }
+        .laptopDeckLine {
+            position: absolute;
+            left: 7%;
+            right: 7%;
+            top: 7%;
+            height: 1px;
+            background: rgba(255,255,255,0.12);
+        }
+        #laptopRig.endingZoom {
+            width: 100%;
+            max-width: 520px;
+        }
 
         #laptopOverlay {
             display: none;
@@ -640,9 +786,27 @@
             <img id="printer" src="UI_Assets/Printer.png" alt="Printer" style="display: block;">
             <div id="printBtn" onclick="if(game.gameActive) printTicket()">PRINT</div>
             <img id="shredder" src="UI_Assets/Shredder.png" alt="Shredder" style="display: block;">
-            <img id="laptop" src="UI_Assets/Laptop.png" alt="Laptop" style="display: block;">
-            <div id="laptopScreen" title="Open laptop" aria-label="Open laptop">
-                <div id="tinyDesktopTaskbar" data-time="8:00 AM"></div>
+            <div id="laptopRig">
+                <div id="laptopLid">
+                    <div id="laptopScreen" title="Open laptop" aria-label="Open laptop">
+                        <div id="tinyDesktopIcons">
+                            <div class="tinyPreviewIcon"><div class="tinyPreviewIconSymbol">@</div>MAIL</div>
+                            <div class="tinyPreviewIcon"><div class="tinyPreviewIconSymbol">%</div>WX</div>
+                            <div class="tinyPreviewIcon"><div class="tinyPreviewIconSymbol">?</div>FILES</div>
+                            <div class="tinyPreviewIcon"><div class="tinyPreviewIconSymbol">X</div>BIN</div>
+                        </div>
+                        <div id="tinyDesktopTaskbar" data-time="8:00 AM"></div>
+                        <div id="laptopScreenHitArea" aria-label="Open laptop"></div>
+                    </div>
+                </div>
+                <div id="laptopHinge"></div>
+                <div id="laptopBase">
+                    <div class="laptopDeckLine"></div>
+                    <div id="laptopKeyboard"></div>
+                    <div id="laptopTrackpad"></div>
+                    <div id="laptopFrontNotch"></div>
+                </div>
+                <div id="laptopShadow"></div>
             </div>
             <div id="ticketBoard"></div>
         </div>
@@ -2238,7 +2402,7 @@ If daylight does not resume, workstation lamps will be considered essential infr
 
                     // Hide everything except laptop
                     [...scene.children].forEach(c => {
-                        if (c.id !== 'laptop') c.style.display = 'none';
+                        if (c.id !== 'laptopRig') c.style.display = 'none';
                     });
 
                     // Set data center as background
@@ -2253,7 +2417,7 @@ If daylight does not resume, workstation lamps will be considered essential infr
                     setTimeout(() => flash.remove(), 700);
 
                     // Zoom laptop to center as dramatic reveal
-                    const laptop = document.getElementById('laptop');
+                    const laptop = document.getElementById('laptopRig');
                     laptop.style.display = 'block';
                     laptop.style.transition = 'none';
                     laptop.style.position = 'absolute';
