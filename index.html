@@ -461,6 +461,40 @@
         }
         #bossToast.active { display: block; animation: bossNoticeIn 0.25s ease-out; }
         #bossToast strong { display: block; margin-bottom: 5px; }
+        #archiveNoticeModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10004;
+            background: rgba(0,0,0,0.72);
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        #archiveNoticeModal.active { display: flex; }
+        #archiveNoticeCard {
+            width: min(560px, 92vw);
+            background: linear-gradient(180deg, #f7fbfd, #dde9ee);
+            color: #162531;
+            border-left: 8px solid #4CAF50;
+            border-radius: 12px;
+            box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+            padding: 28px 30px 24px;
+            text-align: left;
+        }
+        #archiveNoticeCard h2 { margin-bottom: 12px; font-size: 30px; }
+        #archiveNoticeCard p { font-size: 17px; line-height: 1.5; margin-bottom: 18px; }
+        #archiveNoticeActions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .archiveNoticeButton {
+            border: none;
+            border-radius: 8px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .archiveNoticeButton.primary { background: #4CAF50; color: white; }
+        .archiveNoticeButton.secondary { background: #cfdbe1; color: #162531; }
         @keyframes bossNoticeIn {
             from { transform: translateY(14px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -707,11 +741,21 @@
             align-items: center;
             color: white;
             text-align: center;
-            flex-direction: column;
+            pointer-events: none;
         }
 
         #upgradePanel.active { display: flex; }
-        #upgradePanel h1 { font-size: 42px; margin-bottom: 30px; }
+        #upgradePanel h1 { font-size: 42px; margin-bottom: 22px; }
+        #upgradePanelCard {
+            max-width: 760px;
+            width: min(760px, calc(100vw - 40px));
+            background: rgba(8, 12, 18, 0.92);
+            border: 2px solid rgba(76, 175, 80, 0.75);
+            border-radius: 14px;
+            box-shadow: 0 20px 70px rgba(0,0,0,0.45);
+            padding: 34px 28px 30px;
+            pointer-events: auto;
+        }
         #upgradeOptions { display: flex; gap: 20px; justify-content: center; margin: 30px 0; flex-wrap: wrap; }
         .upgradeCard {
             background: rgba(255,255,255,0.1);
@@ -728,6 +772,47 @@
         }
         .upgradeCard h3 { margin: 0 0 10px 0; }
         .upgradeCard p { margin: 10px 0 0 0; font-size: 14px; opacity: 0.8; }
+        #intermissionHint { margin-top: 18px; font-size: 15px; opacity: 0.82; }
+        #intermissionActions {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-top: 26px;
+            flex-wrap: wrap;
+        }
+        .intermissionButton {
+            border: none;
+            border-radius: 8px;
+            padding: 14px 22px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .intermissionButton.primary {
+            background: #4CAF50;
+            color: white;
+        }
+        .intermissionButton.secondary {
+            background: #d8e5ea;
+            color: #162531;
+        }
+        #exploreContinueButton {
+            display: none;
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 10003;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: 14px 22px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+        }
+        #exploreContinueButton.visible { display: block; }
 
         #startScreen {
             display: flex;
@@ -813,6 +898,17 @@
     </div>
 
     <div id="bossToast"></div>
+
+    <div id="archiveNoticeModal">
+        <div id="archiveNoticeCard">
+            <h2>Email Archives Unlocked</h2>
+            <p>Big Boss granted access to the company mail archive. Check the laptop and open <strong>Company Mail</strong> to read the messages.</p>
+            <div id="archiveNoticeActions">
+                <button id="archiveNoticeOpen" class="archiveNoticeButton primary" type="button">Open Laptop</button>
+                <button id="archiveNoticeDismiss" class="archiveNoticeButton secondary" type="button">Keep Working</button>
+            </div>
+        </div>
+    </div>
 
     <div id="laptopOverlay">
         <div id="laptopWindow">
@@ -906,12 +1002,21 @@ The keyboard is listening for hesitation.</pre>
     </div>
 
     <div id="upgradePanel">
-        <h1>UPGRADES AVAILABLE</h1>
-        <p>Select an upgrade for the next day:</p>
-        <div id="upgradeOptions"></div>
-        <p style="margin-top: 30px; font-size: 14px; opacity: 0.7;">Or press SKIP to continue without upgrades</p>
-        <button id="skipButton" onclick="skipUpgrades()" style="background: #666; color: #fff; border: none; padding: 12px 30px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 20px;">SKIP</button>
+        <div id="upgradePanelCard">
+            <h1>UPGRADES AVAILABLE</h1>
+            <p id="upgradeIntro">Select an upgrade for the next day:</p>
+            <div id="upgradeOptions"></div>
+            <p id="upgradeSkipNote" style="margin-top: 30px; font-size: 14px; opacity: 0.7;">Or press SKIP to continue without upgrades</p>
+            <button id="skipButton" onclick="skipUpgrades()" style="background: #666; color: #fff; border: none; padding: 12px 30px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 20px;">SKIP</button>
+            <p id="intermissionHint">The office stays interactive between days, so you can explore the laptop before starting the next shift.</p>
+            <div id="intermissionActions">
+                <button id="exploreOfficeButton" class="intermissionButton secondary" type="button">Explore Office</button>
+                <button id="openUpgradeButton" class="intermissionButton primary" type="button">Pick Upgrade And Continue</button>
+            </div>
+        </div>
     </div>
+
+    <button id="exploreContinueButton" type="button">Pick Upgrade And Continue</button>
 
     <div id="endingPanel">
         <h1>GAME OVER</h1>
@@ -929,7 +1034,9 @@ The keyboard is listening for hesitation.</pre>
             tickets: [],
             ticketIdCounter: 0,
             draggingTicket: null,
+            pendingDragTicket: null,
             dragOffset: { x: 0, y: 0 },
+            dragStart: { x: 0, y: 0 },
             timerInterval: null,
             spawnInterval: null,
             bonusTime: 0,
@@ -948,12 +1055,12 @@ The keyboard is listening for hesitation.</pre>
                 { id: 'boostedQuota',    title: 'Boosted Quota',    description: 'Start Day 2 with 1 task already credited' }
             ],
             2: [
-                { id: 'numberLock',      title: 'Number Lock',      description: 'Riddle hints shown on tickets' },
+                { id: 'steadyHands',     title: 'Steady Hands',     description: '+10 seconds added to the daily timer' },
                 { id: 'batchProcess',    title: 'Batch Process',    description: '2x typing speed — half the keypresses needed' }
             ],
             3: [
                 { id: 'preSorted',       title: 'Pre-Sorted',       description: 'First ticket each day is auto-stamped' },
-                { id: 'quickScan',       title: 'Quick Scan',       description: 'Math answers shown after 3 seconds' }
+                { id: 'copyBuffer',      title: 'Copy Buffer',      description: 'Typing speed increases again for later days' }
             ],
             4: [
                 { id: 'overclock',       title: 'Overclock',        description: 'Printer fires tickets every 10s instead of 15s' },
@@ -1519,11 +1626,30 @@ If daylight does not resume, workstation lamps will be considered essential infr
             document.getElementById('startButton').addEventListener('click', startGameFromScreen);
             setupLaptop();
             setupEventListeners();
+            setupArchiveNotice();
+            setupIntermissionControls();
         });
 
         function startGameFromScreen() {
             Audio.init();
             document.getElementById('startScreen').classList.add('hidden');
+            startDay();
+        }
+
+        function skipToDay(targetDay) {
+            clearInterval(game.timerInterval);
+            clearInterval(game.spawnInterval);
+            Audio.stopMusic();
+            closeMinigame();
+            closeLaptop();
+            closeAllEasterEggs();
+            document.getElementById('upgradePanel').classList.remove('active');
+            document.getElementById('endingPanel').classList.remove('active');
+            document.getElementById('startScreen').classList.add('hidden');
+            game.currentDay = targetDay;
+            game.gameActive = false;
+
+            if (!Audio.ctx) Audio.init();
             startDay();
         }
 
@@ -1549,6 +1675,20 @@ If daylight does not resume, workstation lamps will be considered essential infr
                 }
                 openEmailApp();
             });
+        }
+
+        function setupArchiveNotice() {
+            document.getElementById('archiveNoticeOpen').addEventListener('click', () => {
+                hideArchiveNotice();
+                openLaptop();
+            });
+            document.getElementById('archiveNoticeDismiss').addEventListener('click', hideArchiveNotice);
+        }
+
+        function setupIntermissionControls() {
+            document.getElementById('exploreOfficeButton').addEventListener('click', exploreOfficeDuringIntermission);
+            document.getElementById('openUpgradeButton').addEventListener('click', openUpgradeSelection);
+            document.getElementById('exploreContinueButton').addEventListener('click', openUpgradeSelection);
         }
 
         function openLaptop() {
@@ -1606,6 +1746,14 @@ If daylight does not resume, workstation lamps will be considered essential infr
             toast._hideTimer = setTimeout(() => toast.classList.remove('active'), 7000);
         }
 
+        function showArchiveNotice() {
+            document.getElementById('archiveNoticeModal').classList.add('active');
+        }
+
+        function hideArchiveNotice() {
+            document.getElementById('archiveNoticeModal').classList.remove('active');
+        }
+
         function unlockCompanyEmail() {
             game.emailAccessUnlocked = true;
             updateLaptopDesktop();
@@ -1615,6 +1763,7 @@ If daylight does not resume, workstation lamps will be considered essential infr
                     'New message from Big Boss',
                     'Company email access has been enabled. Click the laptop and open Company Mail whenever you want to review the archive.'
                 );
+                showArchiveNotice();
             }
         }
 
@@ -1768,7 +1917,7 @@ If daylight does not resume, workstation lamps will be considered essential infr
             { title: "Update Database", text: "Hi Support Team,\n\nAs part of our data hygiene initiative, we need to refresh all customer contact information in the CRM. This includes verifying emails, phone numbers, and addresses for accounts flagged as inactive in the past six months. Prioritize enterprise tier accounts first. Log all changes in the audit trail and escalate unverifiable records to the account manager. Target completion is end of business Friday.\n\nThank you,\nYour AI Assistant", minigame: "typing" }
         ];
         const allMultiChoice = [
-            { title: "Logic Puzzle", text: "How many months have exactly 28 days?", options: {"A":"12","B":"1","C":"6","D":"0"}, answer: "A", minigame: "multichoice" },
+            { title: "Logic Puzzle", text: "How many months have 28 days", options: {"A":"12","B":"1","C":"6","D":"0"}, answer: "A", minigame: "multichoice" },
             { title: "Logic Puzzle", text: "What gets wetter the more it dries?", options: {"A":"A towel","B":"A sponge","C":"Water","D":"Soap"}, answer: "A", minigame: "multichoice" },
             { title: "Logic Puzzle", text: "You pass the person in 2nd place in a race. What place are you in?", options: {"A":"2nd","B":"1st","C":"3rd","D":"It depends"}, answer: "A", minigame: "multichoice" },
             { title: "Logic Puzzle", text: "Which is heavier: a pound of feathers or a pound of bricks?", options: {"A":"They weigh the same","B":"Feathers","C":"Bricks","D":"Depends on the bricks"}, answer: "A", minigame: "multichoice" },
@@ -1834,10 +1983,30 @@ If daylight does not resume, workstation lamps will be considered essential infr
 
         const taskDatabase = {
             1: () => pickRandom(allTyping),
-            2: () => { const r = Math.random(); return r < 0.25 ? pickRandom(allTyping) : pickMultiChoice(); },
-            3: () => { const r = Math.random(); return r < 0.15 ? pickRandom(allTyping) : r < 0.3 ? pickMultiChoice() : pickRandom(allPhoto); },
-            4: () => { const r = Math.random(); return r < 0.1 ? pickRandom(allTyping) : r < 0.2 ? pickMultiChoice() : r < 0.3 ? pickRandom(allPhoto) : pickMath(); },
-            5: () => { const r = Math.random(); return r < 0.2 ? pickRandom(allTyping) : r < 0.4 ? pickMultiChoice() : r < 0.6 ? pickRandom(allPhoto) : pickMath(); }
+            2: () => {
+                const r = Math.random();
+                return r < 0.45 ? pickRandom(allTyping) : pickMultiChoice();
+            },
+            3: () => {
+                const r = Math.random();
+                if (r < 0.35) return pickRandom(allTyping);
+                if (r < 0.65) return pickMultiChoice();
+                return pickRandom(allPhoto);
+            },
+            4: () => {
+                const r = Math.random();
+                if (r < 0.25) return pickRandom(allTyping);
+                if (r < 0.45) return pickMultiChoice();
+                if (r < 0.7) return pickRandom(allPhoto);
+                return pickMath();
+            },
+            5: () => {
+                const r = Math.random();
+                if (r < 0.24) return pickRandom(allTyping);
+                if (r < 0.46) return pickMultiChoice();
+                if (r < 0.7) return pickRandom(allPhoto);
+                return pickMath();
+            }
         };
 
         const photoImages = [
@@ -1927,20 +2096,14 @@ If daylight does not resume, workstation lamps will be considered essential infr
 
         function startDrag(e) {
             const ticket = e.target.closest('.ticket');
-            if (!ticket || !ticket.classList.contains('stamped')) return;
+            if (!ticket) return;
             e.preventDefault();
-            game.draggingTicket = ticket;
-            ticket.classList.add('dragging');
             const ticketRect = ticket.getBoundingClientRect();
+            game.pendingDragTicket = ticket;
+            game.dragStart.x = e.clientX;
+            game.dragStart.y = e.clientY;
             game.dragOffset.x = e.clientX - ticketRect.left;
             game.dragOffset.y = e.clientY - ticketRect.top;
-            // Reparent to scene so it can move anywhere
-            const scene = document.getElementById('scene');
-            const sceneRect = scene.getBoundingClientRect();
-            ticket.style.left = (ticketRect.left - sceneRect.left) + 'px';
-            ticket.style.top = (ticketRect.top - sceneRect.top) + 'px';
-            scene.appendChild(ticket);
-            ticket.style.zIndex = 999;
         }
 
         function setupEventListeners() {
@@ -1948,6 +2111,21 @@ If daylight does not resume, workstation lamps will be considered essential infr
             // ] key held for 1s skips to next day (dev)
             let skipHoldTimer = null;
             document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.altKey && (e.code === 'Digit3' || e.code === 'Numpad3')) {
+                    e.preventDefault();
+                    skipToDay(3);
+                    return;
+                }
+                if (e.ctrlKey && e.altKey && (e.code === 'Digit4' || e.code === 'Numpad4')) {
+                    e.preventDefault();
+                    skipToDay(4);
+                    return;
+                }
+                if (e.ctrlKey && e.altKey && (e.code === 'Digit5' || e.code === 'Numpad5')) {
+                    e.preventDefault();
+                    skipToDay(5);
+                    return;
+                }
                 if (e.key === '`' && game.gameActive) printTicket();
                 if (e.key === ']' && game.gameActive && !skipHoldTimer) {
                     skipHoldTimer = setTimeout(() => { if (game.gameActive) endDay(true); }, 1000);
@@ -1959,6 +2137,25 @@ If daylight does not resume, workstation lamps will be considered essential infr
 
             // Drag freely across the whole scene
             document.addEventListener('mousemove', (e) => {
+                if (!game.draggingTicket && game.pendingDragTicket) {
+                    const dx = e.clientX - game.dragStart.x;
+                    const dy = e.clientY - game.dragStart.y;
+                    if (Math.hypot(dx, dy) < 6) return;
+
+                    const ticket = game.pendingDragTicket;
+                    const ticketRect = ticket.getBoundingClientRect();
+                    const scene = document.getElementById('scene');
+                    const sceneRect = scene.getBoundingClientRect();
+
+                    game.draggingTicket = ticket;
+                    game.pendingDragTicket = null;
+                    ticket.classList.add('dragging');
+                    ticket.style.left = (ticketRect.left - sceneRect.left) + 'px';
+                    ticket.style.top = (ticketRect.top - sceneRect.top) + 'px';
+                    scene.appendChild(ticket);
+                    ticket.style.zIndex = 999;
+                }
+
                 if (!game.draggingTicket) return;
                 const scene = document.getElementById('scene');
                 const sceneRect = scene.getBoundingClientRect();
@@ -1968,6 +2165,7 @@ If daylight does not resume, workstation lamps will be considered essential infr
             });
 
             document.addEventListener('mouseup', (e) => {
+                game.pendingDragTicket = null;
                 if (!game.draggingTicket) return;
 
                 const shredder = document.getElementById('shredder');
@@ -1981,7 +2179,8 @@ If daylight does not resume, workstation lamps will be considered essential infr
                     ticketRect.top > shredderRect.bottom
                 );
 
-                if (isOverShredder) {
+                const canShred = game.draggingTicket.classList.contains('stamped');
+                if (isOverShredder && canShred) {
                     Audio.playShred();
                     game.draggingTicket.remove();
                     game.tasksCompleted++;
@@ -2063,12 +2262,6 @@ If daylight does not resume, workstation lamps will be considered essential infr
                     <button onclick="completeMinigame()">Submit</button>
                 `;
                 setTimeout(focusMinigameInput, 100);
-                if (purchasedUpgrades.has('quickScan')) {
-                    setTimeout(() => {
-                        const h = document.getElementById('mathHint');
-                        if (h) h.textContent = `Hint: answer is ${taskData.answer}`;
-                    }, 3000);
-                }
             } else if (minigameType === 'photo') {
                 mgWindow.innerHTML = `
                     <h2>${taskData.title}</h2>
@@ -2083,18 +2276,6 @@ If daylight does not resume, workstation lamps will be considered essential infr
                     <p id="revealPct" style="color:#888;font-size:13px;">0% revealed</p>
                 `;
                 setTimeout(() => initPhotoReveal(), 50);
-            } else if (minigameType === 'connect') {
-                mgWindow.innerHTML = `
-                    <h2>${taskData.title}</h2>
-                    <p style="font-size: 16px; margin: 20px 0;">Draw a line connecting the dots (just type 'done' when ready)</p>
-                    <canvas id="connectCanvas" width="400" height="300" style="border: 2px solid #333; border-radius: 4px; margin: 15px 0;"></canvas>
-                    <input type="text" id="minigameInput" value="done" placeholder="Type 'done'">
-                    <button onclick="completeMinigame()">Submit</button>
-                `;
-                setTimeout(() => {
-                    drawConnectDotsCanvas();
-                    focusMinigameInput();
-                }, 100);
             }
 
             addMinigameCloseButton();
@@ -2125,6 +2306,14 @@ If daylight does not resume, workstation lamps will be considered essential infr
             currentTask = null;
         }
 
+        function clearAllTickets() {
+            document.querySelectorAll('.ticket').forEach((ticket) => ticket.remove());
+            game.tickets = [];
+            game.draggingTicket = null;
+            game.pendingDragTicket = null;
+            document.getElementById('ticketBoard').innerHTML = '';
+        }
+
         function completeMinigame() {
             if (!currentTask) return;
             const taskData = currentTask.taskData;
@@ -2136,10 +2325,7 @@ If daylight does not resume, workstation lamps will be considered essential infr
                 success = game.typingChars >= taskData.text.length;
             } else if (currentTask.minigameType === 'math') {
                 success = input === taskData.answer.toString();
-            } else if (currentTask.minigameType === 'connect') {
-                success = true;
             }
-            // multichoice and photo handle their own completion via submitMultiChoice / initPhotoReveal
 
             if (success) {
                 Audio.playStamp();
@@ -2160,11 +2346,18 @@ If daylight does not resume, workstation lamps will be considered essential infr
                 document.getElementById('minigameOverlay').classList.remove('active');
                 currentTask = null;
             } else {
-                // Flash wrong answer feedback
                 const btns = document.querySelectorAll('#minigameWindow button:not(.minigameCloseButton)');
-                btns.forEach(b => { if (b.textContent.startsWith(chosen)) { b.style.borderColor = '#e53935'; b.style.background = '#ffebee'; } });
+                btns.forEach((button) => {
+                    if (button.textContent.startsWith(chosen)) {
+                        button.style.borderColor = '#e53935';
+                        button.style.background = '#ffebee';
+                    }
+                });
                 setTimeout(() => {
-                    btns.forEach(b => { b.style.borderColor = '#ddd'; b.style.background = '#f5f5f5'; });
+                    btns.forEach((button) => {
+                        button.style.borderColor = '#ddd';
+                        button.style.background = '#f5f5f5';
+                    });
                 }, 600);
             }
         }
@@ -2173,13 +2366,12 @@ If daylight does not resume, workstation lamps will be considered essential infr
             const canvas = document.getElementById('revealCanvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            const W = canvas.width, H = canvas.height;
+            const W = canvas.width;
+            const H = canvas.height;
 
-            // Fill canvas black (cover image)
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, W, H);
 
-            let revealedPixels = 0;
             const totalPixels = W * H;
             const brushRadius = 35;
 
@@ -2196,12 +2388,12 @@ If daylight does not resume, workstation lamps will be considered essential infr
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over';
 
-                // Sample revealed percentage from alpha channel
                 const data = ctx.getImageData(0, 0, W, H).data;
                 let transparent = 0;
                 for (let i = 3; i < data.length; i += 4) {
                     if (data[i] < 128) transparent++;
                 }
+
                 const pct = Math.round((transparent / totalPixels) * 100);
                 document.getElementById('revealBar').style.width = pct + '%';
                 document.getElementById('revealPct').textContent = pct + '% revealed';
@@ -2219,33 +2411,37 @@ If daylight does not resume, workstation lamps will be considered essential infr
             });
         }
 
-        function drawConnectDotsCanvas() {
-            const canvas = document.getElementById('connectCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-
-            // Draw some dots to connect
-            ctx.fillStyle = '#333';
-            const dots = [
-                { x: 50, y: 50 },
-                { x: 350, y: 50 },
-                { x: 350, y: 250 },
-                { x: 50, y: 250 },
-                { x: 200, y: 150 }
-            ];
-
-            dots.forEach(dot => {
-                ctx.beginPath();
-                ctx.arc(dot.x, dot.y, 8, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.fillStyle = '#999';
-            ctx.font = '12px Arial';
-            ctx.fillText('Connect all dots', 150, 290);
+        function showUpgradePanel() {
+            showIntermissionPanel();
         }
 
-        function showUpgradePanel() {
+        function showIntermissionPanel() {
+            const completedDay = game.currentDay - 1;
+            const dayUpgrades = upgradeDatabase[completedDay];
+            if (!dayUpgrades) { continueToNextDay(); return; }
+
+            const panel = document.getElementById('upgradePanel');
+            document.querySelector('#upgradePanel h1').textContent = `Day ${completedDay} Complete!`;
+            document.getElementById('upgradeIntro').textContent = 'Take a moment to explore the office, or continue when you are ready for the next day.';
+            document.getElementById('upgradeOptions').style.display = 'none';
+            document.getElementById('upgradeSkipNote').style.display = 'none';
+            document.getElementById('skipButton').style.display = 'none';
+            document.getElementById('intermissionHint').style.display = 'block';
+            document.getElementById('intermissionActions').style.display = 'flex';
+            document.getElementById('exploreContinueButton').classList.remove('visible');
+            panel.classList.add('active');
+        }
+
+        function exploreOfficeDuringIntermission() {
+            clearInterval(game.timerInterval);
+            clearInterval(game.spawnInterval);
+            closeMinigame();
+            clearAllTickets();
+            document.getElementById('upgradePanel').classList.remove('active');
+            document.getElementById('exploreContinueButton').classList.add('visible');
+        }
+
+        function openUpgradeSelection() {
             const completedDay = game.currentDay - 1;
             const dayUpgrades = upgradeDatabase[completedDay];
             if (!dayUpgrades) { continueToNextDay(); return; }
@@ -2254,7 +2450,13 @@ If daylight does not resume, workstation lamps will be considered essential infr
             const optionsDiv = document.getElementById('upgradeOptions');
             optionsDiv.innerHTML = '';
             document.querySelector('#upgradePanel h1').textContent = `Day ${completedDay} Complete!`;
-            document.querySelector('#upgradePanel > p').textContent = 'Choose an upgrade for tomorrow:';
+            document.getElementById('upgradeIntro').textContent = 'Choose an upgrade for tomorrow:';
+            document.getElementById('upgradeOptions').style.display = 'flex';
+            document.getElementById('upgradeSkipNote').style.display = 'block';
+            document.getElementById('skipButton').style.display = 'inline-block';
+            document.getElementById('intermissionHint').style.display = 'none';
+            document.getElementById('intermissionActions').style.display = 'none';
+            document.getElementById('exploreContinueButton').classList.remove('visible');
 
             dayUpgrades.forEach(upgrade => {
                 const card = document.createElement('div');
@@ -2272,8 +2474,10 @@ If daylight does not resume, workstation lamps will be considered essential infr
 
             if (upgradeId === 'fasterTyping')  game.typingSpeedMult = 2;
             if (upgradeId === 'boostedQuota')  game.tasksCompleted = 1;  // applied at day start
+            if (upgradeId === 'steadyHands')   game.bonusTime += 10;
             if (upgradeId === 'batchProcess')  game.typingSpeedMult = 2;
             if (upgradeId === 'preSorted')     game.autoStampFirst = true;
+            if (upgradeId === 'copyBuffer')    game.typingSpeedMult = 3;
             if (upgradeId === 'overclock')     game.spawnMs = 10000;
             if (upgradeId === 'memoryAssist')  game.bonusTime += 20;
 
@@ -2286,6 +2490,7 @@ If daylight does not resume, workstation lamps will be considered essential infr
 
         function continueToNextDay() {
             document.getElementById('upgradePanel').classList.remove('active');
+            document.getElementById('exploreContinueButton').classList.remove('visible');
             startDay();
         }
 
@@ -2300,6 +2505,7 @@ If daylight does not resume, workstation lamps will be considered essential infr
                 triggerDay5Ending();
             } else if (won) {
                 Audio.playSuccess();
+                clearAllTickets();
                 game.currentDay++;
                 showUpgradePanel();
             } else {
